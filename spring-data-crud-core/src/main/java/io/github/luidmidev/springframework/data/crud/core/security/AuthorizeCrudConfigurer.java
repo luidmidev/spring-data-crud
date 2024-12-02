@@ -8,6 +8,7 @@ import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.access.hierarchicalroles.NullRoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.authorization.*;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 import org.springframework.util.function.SingletonSupplier;
 
@@ -182,6 +183,10 @@ public class AuthorizeCrudConfigurer {
 
         public AuthorizationManagerCrudMatcherRegistry hasAnyRole(String... roles) {
             return access(withRoleHierarchy(AuthorityAuthorizationManager.hasAnyRole(AuthorizeCrudConfigurer.this.rolePrefix, roles)));
+        }
+
+        public AuthorizationManagerCrudMatcherRegistry hasAuthority(GrantedAuthority authority) {
+            return hasAuthority(authority.getAuthority());
         }
 
         public AuthorizationManagerCrudMatcherRegistry hasAuthority(String authority) {
