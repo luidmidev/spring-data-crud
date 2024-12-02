@@ -11,10 +11,8 @@ import io.github.luidmidev.apache.poi.exceptions.WorkbookException;
 import io.github.luidmidev.apache.poi.model.SpreadSheetFile;
 import io.github.luidmidev.apache.poi.model.WorkbookType;
 import io.github.luidmidev.springframework.data.crud.core.utils.HeadersUtils;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
-import io.github.luidmidev.springframework.web.problemdetails.ProblemDetailsException;
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.springframework.core.io.ByteArrayResource;
@@ -22,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.time.LocalDate;
@@ -29,15 +28,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Log4j2
-public class ExportDataService {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    private static final Map<Class<?>, Map<String, Method>> METHOD_CACHE = new ConcurrentHashMap<>();
+@Slf4j
+public class SpreadSheetExporter implements Exporter {
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final Map<Class<?>, Map<String, Method>> methodCache = new ConcurrentHashMap<>();
 
 
-    public static ResponseEntity<ByteArrayResource> generate(List<?> elements, ExportConfig config) {
+    public ResponseEntity<ByteArrayResource> export(List<?> elements, ExportConfig config) {
 
         try {
             log.debug("Generating report with config: {}", config);
@@ -46,15 +43,13 @@ public class ExportDataService {
                 return getResponseEntity(report);
             }
 
-        } catch (ProblemDetailsException e) {
-            throw e;
         } catch (Exception e) {
             log.error("Error generating report", e);
-            throw ApiError.badRequest("Error generating report: " + e.getMessage());
+            throw new ExporterException("Error generating report: " + e.getMessage(), e);
         }
     }
 
-    static <T> WorkbookManager getWorkbookModelBuilder(ExportConfig config, List<T> elements) throws WorkbookException {
+    private <T> WorkbookManager getWorkbookModelBuilder(ExportConfig config, List<T> elements) throws WorkbookException {
         var columns = config.getColumns();
         var headerStyle = CellStylizer.init()
                 .fontBold()
@@ -79,37 +74,55 @@ public class ExportDataService {
 
     }
 
-    private static Object getValueSafely(String attributeOrPath, Object element) {
+    private Object getValueSafely(String attributeOrPath, Object element) {
         try {
             return solveValue(getValue(element, attributeOrPath));
         } catch (Exception e) {
             log.error("Error resolving field: {}", attributeOrPath, e);
-            throw ApiError.badRequest("Error resolving field: " + attributeOrPath + " - " + e.getMessage());
+            throw new ExporterException("Error resolving field: " + attributeOrPath + " - " + e.getMessage(), e);
         }
     }
 
     @SneakyThrows
-    private static Object getValue(Object target, String attributeOrPath) {
+    private Object getValue(Object target, String attributeOrPath) {
 
         var spliter = Spliter.split(attributeOrPath);
 
         var attribute = spliter.attribute();
 
-        var value = resolveMethod(target.getClass(), attribute).invoke(target);
+        var value = target instanceof Map<?, ?> map
+                ? map.getOrDefault(attribute, null)
+                : resolveGetter(target.getClass(), attribute).invoke(target);
+
         if (value == null) return null;
 
         var path = spliter.path();
         if (path == null) return value;
 
-        if (value instanceof Collection<?> list) {
-            return list.stream().map(element -> getValue(element, path)).toList();
+        // for collections
+        if (value instanceof Collection<?> collection) {
+            return collection.stream().map(element -> getValue(element, path)).toList();
+        }
+
+        // for arrays
+        if (value.getClass().isArray()) {
+            return getValueForArray(value, path);
         }
 
         return getValue(value, path);
     }
 
+    private ArrayList<Object> getValueForArray(Object value, String path) {
+        var length = Array.getLength(value);
+        var list = new ArrayList<>();
+        for (int i = 0; i < length; i++) {
+            list.add(getValue(Array.get(value, i), path));
+        }
+        return list;
+    }
 
-    private static Object solveValue(Object value) {
+
+    private Object solveValue(Object value) {
         return switch (value) {
             case String s -> s;
             case Number n -> n;
@@ -125,22 +138,26 @@ public class ExportDataService {
     }
 
 
-    private static String serializeSafely(Object value) {
+    private String serializeSafely(Object value) {
         try {
-            return MAPPER.writeValueAsString(value);
+            return mapper.writeValueAsString(value);
         } catch (JsonProcessingException e) {
             return "<error: " + e.getMessage() + ">";
         }
     }
 
-    private static Method resolveMethod(Class<?> targetClass, String attribute) {
+    private Method resolveGetter(Class<?> targetClass, String attribute) {
 
-        var methods = METHOD_CACHE.computeIfAbsent(targetClass, cls -> new ConcurrentHashMap<>());
+        if (targetClass.isPrimitive()) {
+            throw new ExporterException("Cannot resolve getter for primitive type: " + targetClass);
+        }
+
+        var methods = methodCache.computeIfAbsent(targetClass, cls -> new ConcurrentHashMap<>());
 
         return methods.computeIfAbsent(attribute, name -> {
 
             var methodsDeclared = Arrays.stream(targetClass.getDeclaredMethods())
-                    .filter(ExportDataService::isValid)
+                    .filter(this::isValidMathod)
                     .toList();
 
             var jsonProperty = methodsDeclared.stream()
@@ -160,13 +177,13 @@ public class ExportDataService {
             return methodsDeclared.stream()
                     .filter(method -> List.of("get" + camelSuffix, "is" + camelSuffix, attribute).contains(method.getName()))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("No property found for attribute: " + attribute));
+                    .orElseThrow(() -> new ExporterException("No property found for attribute: " + attribute));
 
         });
 
     }
 
-    private static boolean isValid(Method method) {
+    private boolean isValidMathod(Method method) {
         if (method.getParameterCount() > 0) return false;
         if (method.getReturnType() == void.class || method.getReturnType() == Void.class) return false;
         if (method.getName().equals("getClass")) return false;

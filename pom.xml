@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.luidmidev</groupId>
     <artifactId>spring-data-crud</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <packaging>pom</packaging>
     <name>spring-crud</name>
     <description>spring-crud</description>
@@ -42,7 +42,6 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <java.version>21</java.version>
-        <project.version>0.0.1</project.version>
         <spring.version>3.3.5</spring.version>
     </properties>
 

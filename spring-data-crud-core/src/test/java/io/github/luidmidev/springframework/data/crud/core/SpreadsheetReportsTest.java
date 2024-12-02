@@ -1,7 +1,8 @@
-package io.github.luidmidev.springframework.data.crud.core.extensions;
+package io.github.luidmidev.springframework.data.crud.core;
 
+import io.github.luidmidev.springframework.data.crud.core.export.Exporter;
 import io.github.luidmidev.springframework.data.crud.core.export.ExportConfig;
-import io.github.luidmidev.springframework.data.crud.core.export.ExportDataService;
+import io.github.luidmidev.springframework.data.crud.core.export.SpreadSheetExporter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.junit.jupiter.api.Assertions;
@@ -12,7 +13,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ExportDataServiceTest {
+class SpreadsheetReportsTest {
+
+    private final Exporter service = new SpreadSheetExporter();
 
     @Test
     void generate() {
@@ -25,7 +28,7 @@ class ExportDataServiceTest {
 
         try {
             var timeMillis = System.currentTimeMillis();
-            var report = ExportDataService.generate(persons, config).getBody();
+            var report = service.export(persons, config).getBody();
             Assertions.assertNotNull(report);
             System.out.println("Time on generate report: " + (System.currentTimeMillis() - timeMillis));
             System.out.println("Report size: " + report.contentLength());
@@ -56,6 +59,7 @@ class ExportDataServiceTest {
         return persons;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static List<Person> getPeople(int size) {
         var persons = new java.util.ArrayList<Person>();
         for (var i = 0; i < size; i++) {

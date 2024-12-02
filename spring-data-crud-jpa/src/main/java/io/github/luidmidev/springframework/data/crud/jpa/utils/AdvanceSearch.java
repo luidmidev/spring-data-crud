@@ -8,9 +8,9 @@ import jakarta.persistence.criteria.*;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -37,6 +37,47 @@ public class AdvanceSearch {
             FromString.of(Short.class, Short::parseShort),
             FromString.of(Byte.class, Byte::parseByte)
     );
+
+    public static <M> Page<M> search(EntityManager em, String search, Pageable pageable, Class<M> domainClass) {
+        return search(em, search, pageable, null, domainClass);
+    }
+
+    public static <M> List<M> search(EntityManager em, String search, Class<M> domainClass) {
+        return search(em, search, (AdditionsSearch<M>) null, domainClass);
+    }
+
+
+    public static <M> Page<M> search(EntityManager em, String search, Pageable pageable, AdditionsSearch<M> additions, Class<M> domainClass) {
+        return createQueryExecutor(em, search, additions, domainClass, (cb, query, root) -> {
+
+            if (pageable.getSort().isSorted()) {
+                query.orderBy(resolveOrders(pageable.getSort(), cb, root));
+            }
+
+            var results = em
+                    .createQuery(query)
+                    .setFirstResult((int) pageable.getOffset())
+                    .setMaxResults(pageable.getPageSize())
+                    .getResultList();
+
+            return PageableExecutionUtils.getPage(
+                    results,
+                    pageable,
+                    () -> countBySearch(em, search, additions, domainClass)
+            );
+        });
+    }
+
+    public static <M> List<M> search(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> domainClass) {
+        return createQueryExecutor(em, search, additions, domainClass, (cb, query, root) -> em.createQuery(query).getResultList());
+    }
+
+    public static <M> long countBySearch(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> domainClass) {
+        return createQueryExecutor(em, search, additions, Long.class, domainClass, (cb, query, root) -> {
+            query.select(cb.count(root));
+            return em.createQuery(query).getSingleResult();
+        });
+    }
 
     private static <M> Predicate searchInAllColumns(@NotNull String search, Root<M> root, CriteriaBuilder cb, Class<M> domainClass, String... joinColumns) {
 
@@ -111,39 +152,11 @@ public class AdvanceSearch {
         return search == null || search.isBlank();
     }
 
-    public static <M> Page<M> search(EntityManager em, String search, Pageable pageable, AdditionsSearch<M> additions, Class<M> domainClass) {
-        return dispatchSearch(em, search, additions, domainClass, (cb, query, root) -> {
-
-            if (pageable.getSort().isSorted()) {
-                query.orderBy(resolveOrders(pageable.getSort(), cb, root));
-            }
-
-            var results = em
-                    .createQuery(query)
-                    .setFirstResult((int) pageable.getOffset())
-                    .setMaxResults(pageable.getPageSize())
-                    .getResultList();
-
-            return new PageImpl<>(results, pageable, countBySearch(em, search, additions, domainClass));
-        });
+    private static <M, E> E createQueryExecutor(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> entityClass, InitQueryReturn<M, M, E> function) {
+        return createQueryExecutor(em, search, additions, entityClass, entityClass, function);
     }
 
-    public static <M> List<M> search(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> domainClass) {
-        return dispatchSearch(em, search, additions, domainClass, (cb, query, root) -> em.createQuery(query).getResultList());
-    }
-
-    public static <M> long countBySearch(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> domainClass) {
-        return dispatchSearch(em, search, additions, Long.class, domainClass, (cb, query, root) -> {
-            query.select(cb.count(root));
-            return em.createQuery(query).getSingleResult();
-        });
-    }
-
-    private static <M, E> E dispatchSearch(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> entityClass, InitQueryReturn<M, M, E> function) {
-        return dispatchSearch(em, search, additions, entityClass, entityClass, function);
-    }
-
-    private static <Q, M, E> E dispatchSearch(EntityManager em, String search, AdditionsSearch<M> additions, Class<Q> resultClass, Class<M> entityClass, InitQueryReturn<Q, M, E> function) {
+    private static <Q, M, E> E createQueryExecutor(EntityManager em, String search, AdditionsSearch<M> additions, Class<Q> resultClass, Class<M> entityClass, InitQueryReturn<Q, M, E> function) {
 
         var cb = em.getCriteriaBuilder();
         var query = cb.createQuery(resultClass);

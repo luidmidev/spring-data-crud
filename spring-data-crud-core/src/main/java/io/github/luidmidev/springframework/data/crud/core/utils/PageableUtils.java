@@ -5,20 +5,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import java.util.List;
-
 public final class PageableUtils {
 
     private PageableUtils() {
     }
 
-    public static Pageable resolvePage(int size, int page, Sort.Direction direction, List<String> properties) {
+    public static Pageable resolvePage(int size, int page, Sort.Direction direction, String... properties) {
         if (size < 0) throw ApiError.badRequest("Size must be greater than or equal to 0 for pagination");
         if (size == 0) return Pageable.unpaged();
-        if (direction != null && properties != null && !properties.isEmpty()) {
-            return PageRequest.of(page, size, direction, properties.toArray(String[]::new));
+        if (direction != null && properties != null && properties.length > 0) {
+            return PageRequest.of(page, size, direction, properties);
         }
         return PageRequest.of(page, size);
     }
-
 }
