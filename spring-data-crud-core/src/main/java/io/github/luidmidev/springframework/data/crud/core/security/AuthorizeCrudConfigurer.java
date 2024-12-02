@@ -70,31 +70,36 @@ public class AuthorizeCrudConfigurer {
             }
         }
 
-        public AuthorizedCrud targetType(Class<?> targetType) {
+        public AuthorizedCrud targets(Class<?> targetType) {
             return operationMatcher((target, operation) -> target.getClass().equals(targetType));
         }
 
-        public AuthorizedCrud targetTypeOperations(Class<?> targetType, Operation... operations) {
+        public AuthorizedCrud targets(Class<?>... targetTypes) {
+            Assert.state(targetTypes.length > 0, "targetTypes cannot be empty");
+            return operationMatcher((target, operation) -> Arrays.asList(targetTypes).contains(target.getClass()));
+        }
+
+        public AuthorizedCrud targetOperations(Class<?> targetType, Operation... operations) {
             return operationMatcher((target, operation) -> target.getClass().equals(targetType) && Arrays.asList(operations).contains(operation));
         }
 
-        public AuthorizedCrud targetTypeRead(Class<?> targetType) {
+        public AuthorizedCrud targetRead(Class<?> targetType) {
             return operationMatcher((target, operation) -> target.getClass().equals(targetType) && operation.isRead());
         }
 
-        public AuthorizedCrud targetTypeReadOnly(Class<?> targetType) {
+        public AuthorizedCrud targetReadOnly(Class<?> targetType) {
             return operationMatcher((target, operation) -> target.getClass().equals(targetType) && operation.isReadOnly());
         }
 
-        public AuthorizedCrud targetTypeWrite(Class<?> targetType) {
+        public AuthorizedCrud targetWrite(Class<?> targetType) {
             return operationMatcher((target, operation) -> target.getClass().equals(targetType) && operation.isWrite());
         }
 
-        public AuthorizedCrud targetTypeWriteOnly(Class<?> targetType) {
+        public AuthorizedCrud targetWriteOnly(Class<?> targetType) {
             return operationMatcher((target, operation) -> target.getClass().equals(targetType) && operation.isWriteOnly());
         }
 
-        public AuthorizedCrud operation(Operation... operations) {
+        public AuthorizedCrud operations(Operation... operations) {
             return operationMatcher((target, operation) -> Arrays.asList(operations).contains(operation));
         }
 
@@ -146,6 +151,7 @@ public class AuthorizeCrudConfigurer {
      * @author Evgeniy Cheban
      * @author Josh Cummings
      */
+    @SuppressWarnings({"unused", "UnusedReturnValue"})
     public class AuthorizedCrud {
 
         private final List<? extends CrudMatcher> matchers;

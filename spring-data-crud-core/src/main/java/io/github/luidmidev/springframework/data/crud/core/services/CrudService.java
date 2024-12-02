@@ -3,6 +3,7 @@ package io.github.luidmidev.springframework.data.crud.core.services;
 
 import io.github.luidmidev.springframework.data.crud.core.NotFoundProvider;
 import io.github.luidmidev.springframework.data.crud.core.operations.CrudOperations;
+import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -58,13 +59,13 @@ public abstract class CrudService<M extends Persistable<ID>, D, ID, R extends Li
     }
 
     public List<M> list(String search) {
-        var list = search == null ? repository.findAll() : search(search);
+        var list = StringUtils.isNullOrEmpty(search) ? repository.findAll() : search(search);
         onList(list);
         return list;
     }
 
     public Page<M> page(String search, Pageable pageable) {
-        var page = search == null ? repository.findAll(pageable) : search(search, pageable);
+        var page = StringUtils.isNullOrEmpty(search) ? repository.findAll(pageable) : search(search, pageable);
         onPage(page);
         return page;
     }

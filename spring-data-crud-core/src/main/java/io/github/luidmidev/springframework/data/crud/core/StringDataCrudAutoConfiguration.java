@@ -15,7 +15,6 @@ import java.util.Optional;
 @AutoConfiguration
 public class StringDataCrudAutoConfiguration {
 
-
     @Bean
     public AuthorizationCrudManager authorizationCrudManager(ApplicationContext context, Optional<Customizer<AuthorizationManagerCrudMatcherRegistry>> customizer) {
         var configurer = new AuthorizeCrudConfigurer(context, customizer.orElse(defaultCustomizer()));

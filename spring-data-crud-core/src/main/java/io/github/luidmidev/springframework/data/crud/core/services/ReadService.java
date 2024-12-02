@@ -3,6 +3,7 @@ package io.github.luidmidev.springframework.data.crud.core.services;
 
 import io.github.luidmidev.springframework.data.crud.core.NotFoundProvider;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
+import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,13 +32,13 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
 
 
     public List<M> list(String search) {
-        var list = search == null ? repository.findAll() : search(search);
+        var list = StringUtils.isNullOrEmpty(search) ? repository.findAll() : search(search);
         onList(list);
         return list;
     }
 
     public Page<M> page(String search, Pageable pageable) {
-        var page = search == null ? repository.findAll(pageable) : search(search, pageable);
+        var page = StringUtils.isNullOrEmpty(search) ? repository.findAll(pageable) : search(search, pageable);
         onPage(page);
         return page;
     }
