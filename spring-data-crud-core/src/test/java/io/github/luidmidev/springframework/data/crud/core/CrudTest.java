@@ -101,8 +101,8 @@ class CrudTest {
         var model = crudService.create(dto);
 
         var id = model.getId();
-        Assertions.assertNotNull(id);
 
+        Assertions.assertNotNull(id);
         Assertions.assertTrue(crudService.exists(id));
     }
 
