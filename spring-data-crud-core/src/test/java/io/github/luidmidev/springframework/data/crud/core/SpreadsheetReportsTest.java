@@ -71,7 +71,7 @@ class SpreadsheetReportsTest {
 
     @Data
     @AllArgsConstructor
-    private static class Person {
+    public static class Person {
         private String name;
         private String lastName;
         private int age;
