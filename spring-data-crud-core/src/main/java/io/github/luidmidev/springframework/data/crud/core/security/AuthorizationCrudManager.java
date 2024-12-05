@@ -1,6 +1,6 @@
 package io.github.luidmidev.springframework.data.crud.core.security;
 
-import io.github.luidmidev.springframework.data.crud.core.operations.Operation;
+import io.github.luidmidev.springframework.data.crud.core.operations.CrudOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authorization.AuthorizationDecision;
@@ -18,8 +18,8 @@ public class AuthorizationCrudManager implements AuthorizationManager<CrudAuthor
 
     private final List<OperationMatcherEntry<AuthorizationManager<CrudAuthorizationContext>>> mappings;
 
-    public boolean canAccess(Object target, Operation operation) {
-        var context = new CrudAuthorizationContext(target, operation);
+    public boolean canAccess(Object target, CrudOperation crudOperation) {
+        var context = new CrudAuthorizationContext(target, crudOperation);
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         var decision = check(() -> authentication, context);
         if (decision == null) {
@@ -40,7 +40,7 @@ public class AuthorizationCrudManager implements AuthorizationManager<CrudAuthor
 
         for (var mapping : mappings) {
             var matcher = mapping.matcher();
-            if (matcher.matches(context.target(), context.operation())) {
+            if (matcher.matches(context.target(), context.crudOperation())) {
                 var manager = mapping.entry();
                 if (log.isTraceEnabled()) {
                     log.trace("Checking authorization on {} using {}", context, manager);

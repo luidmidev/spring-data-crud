@@ -55,7 +55,7 @@ public class AdditionsSearch<M> {
     }
 
     /**
-     * Set the operator to AND and the specification to add to the search
+     * Set the operator to AND _and the specification to add to the search
      * @param specification Specification
      * @return this
      */

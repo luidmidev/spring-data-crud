@@ -1,1 +1,1 @@
-io.github.luidmidev.springframework.data.crud.core.StringDataCrudAutoConfiguration
+io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration

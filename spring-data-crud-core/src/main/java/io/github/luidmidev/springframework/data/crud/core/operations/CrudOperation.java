@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum Operation {
+public enum CrudOperation {
     /**
      * Represents a create operation (write only).
      */

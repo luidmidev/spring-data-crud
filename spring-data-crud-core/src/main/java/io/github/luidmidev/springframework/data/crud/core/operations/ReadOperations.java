@@ -13,7 +13,7 @@ import java.util.List;
  * @param <M>  Model
  * @param <ID> ID
  */
-public interface ReadOperations<M, ID> {
+public non-sealed interface ReadOperations<M, ID> extends Crud {
 
 
     @PreAuthorize("@authorizationCrudManager.canAccess(this, 'LIST')")

@@ -1,6 +1,7 @@
 package io.github.luidmidev.springframework.data.crud.core.security;
 
-import io.github.luidmidev.springframework.data.crud.core.operations.Operation;
+import io.github.luidmidev.springframework.data.crud.core.operations.Crud;
+import io.github.luidmidev.springframework.data.crud.core.operations.CrudOperation;
 import lombok.Getter;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.config.Customizer;
@@ -15,6 +16,7 @@ import org.springframework.util.function.SingletonSupplier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 
@@ -35,7 +37,7 @@ public class AuthorizeCrudConfigurer {
         this.roleHierarchy = SingletonSupplier.of(() -> (context.getBeanNamesForType(RoleHierarchy.class).length > 0) ? context.getBean(RoleHierarchy.class) : new NullRoleHierarchy());
         var grantedAuthorityDefaultsBeanNames = context.getBeanNamesForType(GrantedAuthorityDefaults.class);
         if (grantedAuthorityDefaultsBeanNames.length > 0) {
-            GrantedAuthorityDefaults grantedAuthorityDefaults = context.getBean(GrantedAuthorityDefaults.class);
+            var grantedAuthorityDefaults = context.getBean(GrantedAuthorityDefaults.class);
             this.rolePrefix = grantedAuthorityDefaults.getRolePrefix();
         }
 
@@ -54,7 +56,7 @@ public class AuthorizeCrudConfigurer {
      */
     public final class AuthorizationManagerCrudMatcherRegistry {
 
-        private static final CrudMatcher ANY_OPERATION = (target, operation) -> true;
+        private static final CrudMatcher ANY_OPERATION = (target, crudOperation) -> true;
 
         private boolean anyOperationConfigured = false;
 
@@ -65,59 +67,72 @@ public class AuthorizeCrudConfigurer {
         public AuthorizedCrud anyOperation() {
             Assert.state(!this.anyOperationConfigured, "Can't configure anyOperation after itself");
             try {
-                return operationMatcher(ANY_OPERATION);
+                return crudMatcher(ANY_OPERATION);
             } finally {
                 this.anyOperationConfigured = true;
             }
         }
 
-        public AuthorizedCrud targets(Class<?> targetType) {
-            return operationMatcher((target, operation) -> target.getClass().equals(targetType));
+        public AuthorizedCrud cruds(Class<? extends Crud>... cruds) {
+            Assert.state(cruds.length > 0, "cruds cannot be empty");
+            return crudMatcher((target, crudOperation) -> Arrays.asList(cruds).contains(target.getClass()));
         }
 
-        public AuthorizedCrud targets(Class<?>... targetTypes) {
-            Assert.state(targetTypes.length > 0, "targetTypes cannot be empty");
-            return operationMatcher((target, operation) -> Arrays.asList(targetTypes).contains(target.getClass()));
+        public AuthorizedCrud crud(Class<? extends Crud> crud) {
+            return crudMatcher((target, crudOperation) -> target.getClass().equals(crud));
         }
 
-        public AuthorizedCrud targetOperations(Class<?> targetType, Operation... operations) {
-            return operationMatcher((target, operation) -> target.getClass().equals(targetType) && Arrays.asList(operations).contains(operation));
+        public AuthorizedCrud crudOperations(Class<? extends Crud> cruds, CrudOperation... crudOperations) {
+            return crudEqualsAndOperationMatcher(cruds, crudOperation -> Arrays.asList(crudOperations).contains(crudOperation));
         }
 
-        public AuthorizedCrud targetRead(Class<?> targetType) {
-            return operationMatcher((target, operation) -> target.getClass().equals(targetType) && operation.isRead());
+        public AuthorizedCrud crudsRead(Class<? extends Crud> crud) {
+            return crudEqualsAndOperationMatcher(crud, CrudOperation::isRead);
         }
 
-        public AuthorizedCrud targetReadOnly(Class<?> targetType) {
-            return operationMatcher((target, operation) -> target.getClass().equals(targetType) && operation.isReadOnly());
+        public AuthorizedCrud crudsReadOnly(Class<? extends Crud> crud) {
+            return crudEqualsAndOperationMatcher(crud, CrudOperation::isReadOnly);
         }
 
-        public AuthorizedCrud targetWrite(Class<?> targetType) {
-            return operationMatcher((target, operation) -> target.getClass().equals(targetType) && operation.isWrite());
+        public AuthorizedCrud crudsWrite(Class<? extends Crud> crud) {
+            return crudEqualsAndOperationMatcher(crud, CrudOperation::isWrite);
         }
 
-        public AuthorizedCrud targetWriteOnly(Class<?> targetType) {
-            return operationMatcher((target, operation) -> target.getClass().equals(targetType) && operation.isWriteOnly());
-        }
-
-        public AuthorizedCrud operations(Operation... operations) {
-            return operationMatcher((target, operation) -> Arrays.asList(operations).contains(operation));
+        public AuthorizedCrud crudsWriteOnly(Class<? extends Crud> crud) {
+            return crudEqualsAndOperationMatcher(crud, CrudOperation::isWriteOnly);
         }
 
         public AuthorizedCrud operationRead() {
-            return operationMatcher((target, operation) -> operation.isRead());
+            return operationMatcher(CrudOperation::isRead);
         }
 
         public AuthorizedCrud operationWrite() {
-            return operationMatcher((target, operation) -> operation.isWrite());
+            return operationMatcher(CrudOperation::isWrite);
         }
 
         public AuthorizedCrud operationReadOnly() {
-            return operationMatcher((target, operation) -> operation.isReadOnly());
+            return operationMatcher(CrudOperation::isReadOnly);
         }
 
         public AuthorizedCrud operationWriteOnly() {
-            return operationMatcher((target, operation) -> operation.isWriteOnly());
+            return operationMatcher(CrudOperation::isWriteOnly);
+        }
+
+        public AuthorizedCrud operations(CrudOperation... crudOperations) {
+            return crudMatcher((target, crudOperation) -> Arrays.asList(crudOperations).contains(crudOperation));
+        }
+
+        public AuthorizedCrud crudMatcher(CrudMatcher... crudMatchers) {
+            Assert.state(!this.anyOperationConfigured, "Can't configure operationMatchers after anyOperation");
+            return chainOperationMatchers(Arrays.asList(crudMatchers));
+        }
+
+        public AuthorizedCrud crudEqualsAndOperationMatcher(Class<? extends Crud> crud, Predicate<CrudOperation> operationMatcher) {
+            return crudMatcher((target, crudOperation) -> target.getClass().equals(crud) && operationMatcher.test(crudOperation));
+        }
+
+        public AuthorizedCrud operationMatcher(Predicate<CrudOperation> operationMatcher) {
+            return crudMatcher((target, crudOperation) -> operationMatcher.test(crudOperation));
         }
 
         private void addMapping(CrudMatcher matcher, AuthorizationManager<CrudAuthorizationContext> manager) {
@@ -128,10 +143,6 @@ public class AuthorizeCrudConfigurer {
             this.mappings.add(new OperationMatcherEntry<>(matcher, manager));
         }
 
-        public AuthorizedCrud operationMatcher(CrudMatcher... crudMatchers) {
-            Assert.state(!this.anyOperationConfigured, "Can't configure operationMatchers after anyOperation");
-            return chainOperationMatchers(Arrays.asList(crudMatchers));
-        }
 
         private AuthorizedCrud chainOperationMatchers(List<CrudMatcher> crudMatchers) {
             this.unmappedMatchers = crudMatchers;

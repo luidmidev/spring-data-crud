@@ -14,7 +14,7 @@ import org.springframework.validation.annotation.Validated;
  * @param <ID> ID
  */
 @Validated
-public interface WriteOperations<M, D, ID> {
+public non-sealed interface WriteOperations<M, D, ID> extends Crud {
 
 
     @PreAuthorize("@authorizationCrudManager.canAccess(this, 'CREATE')")

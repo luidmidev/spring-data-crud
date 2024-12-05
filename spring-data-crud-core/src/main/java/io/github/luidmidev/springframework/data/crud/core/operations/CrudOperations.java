@@ -10,6 +10,6 @@ import org.springframework.data.domain.Persistable;
  * @param <D> DTO
  * @param <ID> ID
  */
-public interface CrudOperations<M extends Persistable<ID>, D, ID> extends ReadOperations<M, ID>, WriteOperations<M, D, ID> {
+public non-sealed interface CrudOperations<M extends Persistable<ID>, D, ID> extends ReadOperations<M, ID>, WriteOperations<M, D, ID>, Crud {
 
 }

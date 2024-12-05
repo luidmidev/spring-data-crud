@@ -23,7 +23,6 @@ import java.util.List;
 @Transactional
 public abstract class JpaCrudService<M extends Persistable<ID>, D, ID, R extends JpaRepository<M, ID>> extends CrudService<M, D, ID, R> {
 
-
     protected final EntityManager entityManager;
 
     protected JpaCrudService(R repository, Class<M> domainClass, EntityManager entityManager) {

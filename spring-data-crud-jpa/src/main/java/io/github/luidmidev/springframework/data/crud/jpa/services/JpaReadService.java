@@ -21,8 +21,7 @@ import java.util.List;
  */
 @Transactional
 public abstract class JpaReadService<M extends Persistable<ID>, ID, R extends JpaRepository<M, ID>> extends ReadService<M, ID, R> {
-
-
+    
     protected final EntityManager entityManager;
 
     protected JpaReadService(R repository, Class<M> domainClass, EntityManager entityManager) {

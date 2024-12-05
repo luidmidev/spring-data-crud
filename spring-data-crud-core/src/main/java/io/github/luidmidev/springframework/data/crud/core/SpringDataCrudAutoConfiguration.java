@@ -13,7 +13,7 @@ import org.springframework.security.config.Customizer;
 import java.util.Optional;
 
 @AutoConfiguration
-public class StringDataCrudAutoConfiguration {
+public class SpringDataCrudAutoConfiguration {
 
     @Bean
     public AuthorizationCrudManager authorizationCrudManager(ApplicationContext context, Optional<Customizer<AuthorizationManagerCrudMatcherRegistry>> customizer) {
