@@ -49,6 +49,12 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
         return model;
     }
 
+    public List<M> find(List<ID> ids) {
+        var list = repository.findAllById(ids);
+        onList(list);
+        return list;
+    }
+
     public long count() {
         return repository.count();
     }

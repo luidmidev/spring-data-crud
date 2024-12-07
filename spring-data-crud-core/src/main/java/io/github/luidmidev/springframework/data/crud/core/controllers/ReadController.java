@@ -42,8 +42,12 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
 
     @GetMapping("/{id}")
     default ResponseEntity<M> find(@PathVariable ID id) {
-        M model = getService().find(id);
-        return ResponseEntity.ok(model);
+        return ResponseEntity.ok(getService().find(id));
+    }
+
+    @GetMapping("/ids")
+    default ResponseEntity<List<M>> findAllById(@RequestBody List<ID> ids) {
+        return ResponseEntity.ok(getService().find(ids));
     }
 
     @GetMapping("/count")

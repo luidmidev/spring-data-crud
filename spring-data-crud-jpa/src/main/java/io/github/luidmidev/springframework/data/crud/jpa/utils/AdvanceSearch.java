@@ -1,8 +1,7 @@
 package io.github.luidmidev.springframework.data.crud.jpa.utils;
 
-import jakarta.persistence.Embedded;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Transient;
+import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 
 import lombok.extern.log4j.Log4j2;
@@ -14,6 +13,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,28 +91,49 @@ public class AdvanceSearch {
         return cb.or(predicates.toArray(Predicate[]::new));
     }
 
+    @SuppressWarnings("java:S135")
     private static List<Predicate> getSearchPredicates(String search, Path<?> path, CriteriaBuilder cb, Class<?> domainClass) {
 
         var predicates = new ArrayList<Predicate>();
 
         for (var field : domainClass.getDeclaredFields()) {
 
-            if (field.isAnnotationPresent(Transient.class)) continue;
+            if (field.isAnnotationPresent(Transient.class)) {
+                continue;
+            }
+
+            if (field.isAnnotationPresent(Convert.class)) {
+                addPredicateFromConvertableField(search, path, cb, field, predicates);
+                continue;
+            }
+
             if (field.isAnnotationPresent(Embedded.class)) {
                 predicates.addAll(getSearchPredicates(search, path.get(field.getName()), cb, field.getType()));
+                continue;
             }
 
             try {
-
                 var type = field.getType();
                 addPredicatesFromField(search, path, cb, field, type, predicates);
-
             } catch (IllegalArgumentException e) {
                 log.info("Field {} not found in {}", field.getName(), domainClass.getName());
             }
 
         }
         return predicates;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void addPredicateFromConvertableField(String search, Path<?> path, CriteriaBuilder cb, Field field, ArrayList<Predicate> predicates) {
+        var convert = field.getAnnotation(Convert.class);
+        var conveter = convert.converter();
+        if (conveter == null) return;
+        if (!AttributeConverter.class.isAssignableFrom(conveter)) return;
+
+        if (isStringDatabaseValue(conveter)) {
+            var pathAttribute = path.get(field.getName()).as(String.class);
+            predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
+        }
     }
 
     private static void addPredicatesFromField(String search, Path<?> path, CriteriaBuilder cb, Field field, Class<?> type, ArrayList<Predicate> predicates) {
@@ -123,7 +144,9 @@ public class AdvanceSearch {
         }
 
         if (Number.class.isAssignableFrom(type)) {
-            FROM_STRINGS.forEach(fromString -> addNumberPredicate(predicates, search, fromString, cb, path, field));
+            for (var fromString : FROM_STRINGS) {
+                addNumberPredicate(predicates, search, fromString, cb, path, field);
+            }
         }
 
         if (Boolean.class.isAssignableFrom(type) && search.matches("true|false")) {
@@ -140,7 +163,6 @@ public class AdvanceSearch {
     private static <T extends Number, M> void addNumberPredicate(List<Predicate> predicates, String search, FromString<T> fromString, CriteriaBuilder cb, Path<M> root, Field field) {
         var type = fromString.type();
         var converter = fromString.converter();
-
         if (field.getType().isAssignableFrom(type) && search.matches("\\d+")) {
             var path = root.<T>get(field.getName());
             predicates.add(cb.equal(path, converter.apply(search)));
@@ -148,16 +170,11 @@ public class AdvanceSearch {
 
     }
 
-    private static boolean isNullOrEmpty(String search) {
-        return search == null || search.isBlank();
-    }
-
     private static <M, E> E createQueryExecutor(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> entityClass, InitQueryReturn<M, M, E> function) {
         return createQueryExecutor(em, search, additions, entityClass, entityClass, function);
     }
 
     private static <Q, M, E> E createQueryExecutor(EntityManager em, String search, AdditionsSearch<M> additions, Class<Q> resultClass, Class<M> entityClass, InitQueryReturn<Q, M, E> function) {
-
         var cb = em.getCriteriaBuilder();
         var query = cb.createQuery(resultClass);
         var root = query.from(entityClass);
@@ -184,7 +201,7 @@ public class AdvanceSearch {
 
     private static <M> Predicate getPredicatesSearchPredicate(String search, AdditionsSearch<M> additions, CriteriaBuilder cb, CriteriaQuery<?> query, Root<M> root, Class<M> domainClass) {
 
-        var isNullOrEmpty = isNullOrEmpty(search);
+        var isNullOrEmpty = StringUtils.isNullOrEmpty(search);
 
         if (isNullOrEmpty) {
             if (additions == null) return cb.conjunction();
@@ -206,6 +223,12 @@ public class AdvanceSearch {
             case AND -> cb.and(predicates, predicate);
             case OR -> cb.or(predicates, predicate);
         };
+    }
+
+    private static boolean isStringDatabaseValue(Class<? extends AttributeConverter<?, ?>> converter) {
+        var genericInterface = (ParameterizedType) converter.getGenericInterfaces()[0];
+        Class<?> databaseType = (Class<?>) genericInterface.getActualTypeArguments()[1];
+        return String.class.equals(databaseType);
     }
 
     private record FromString<T>(Class<T> type, Function<String, T> converter) {

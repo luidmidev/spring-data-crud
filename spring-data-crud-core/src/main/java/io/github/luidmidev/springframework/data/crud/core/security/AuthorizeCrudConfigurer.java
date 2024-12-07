@@ -48,7 +48,6 @@ public class AuthorizeCrudConfigurer {
         return this.registry.createAuthorizationManager();
     }
 
-
     /**
      * Registry for mapping a {@link CrudMatcher} to an {@link AuthorizationManager}.
      *
@@ -101,7 +100,6 @@ public class AuthorizeCrudConfigurer {
         public AuthorizedCrud crudsWriteOnly(Class<? extends Crud> crud) {
             return crudEqualsAndOperationMatcher(crud, CrudOperation::isWriteOnly);
         }
-
         public AuthorizedCrud operationRead() {
             return operationMatcher(CrudOperation::isRead);
         }

@@ -27,7 +27,6 @@ public class AuthorizationCrudManager implements AuthorizationManager<CrudAuthor
             return false;
         }
         return decision.isGranted();
-
     }
 
 
@@ -52,6 +51,7 @@ public class AuthorizationCrudManager implements AuthorizationManager<CrudAuthor
         if (log.isTraceEnabled()) {
             log.trace("Denying request since did not find matching OperationMatcherEntry");
         }
+
         return AuthorizationDecisions.DENIED;
     }
 }

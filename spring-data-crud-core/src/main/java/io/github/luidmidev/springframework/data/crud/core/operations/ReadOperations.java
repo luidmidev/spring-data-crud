@@ -25,11 +25,12 @@ public non-sealed interface ReadOperations<M, ID> extends Crud {
     @PreAuthorize("@authorizationCrudManager.canAccess(this, 'FIND')")
     M find(ID id);
 
+    @PreAuthorize("@authorizationCrudManager.canAccess(this, 'FIND')")
+    List<M> find(List<ID> ids);
+
     @PreAuthorize("@authorizationCrudManager.canAccess(this, 'COUNT')")
     long count();
 
     @PreAuthorize("@authorizationCrudManager.canAccess(this, 'EXISTS')")
     boolean exists(ID id);
-
-
 }
