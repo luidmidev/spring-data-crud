@@ -72,10 +72,12 @@ public class AuthorizeCrudConfigurer {
             }
         }
 
-        public AuthorizedCrud cruds(Class<? extends Crud>... cruds) {
+        @SafeVarargs
+        public final AuthorizedCrud cruds(Class<? extends Crud>... cruds) {
             Assert.state(cruds.length > 0, "cruds cannot be empty");
             return crudMatcher((target, crudOperation) -> Arrays.asList(cruds).contains(target.getClass()));
         }
+
 
         public AuthorizedCrud crud(Class<? extends Crud> crud) {
             return crudMatcher((target, crudOperation) -> target.getClass().equals(crud));
