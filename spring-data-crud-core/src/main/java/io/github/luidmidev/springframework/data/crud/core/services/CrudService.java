@@ -42,6 +42,7 @@ public abstract class CrudService<M extends Persistable<ID>, D, ID, R extends Li
         return created;
     }
 
+    @Override
     public M update(@NotNull ID id, @Valid @NotNull D dto) {
         var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
         mapModel(dto, model);
@@ -51,6 +52,7 @@ public abstract class CrudService<M extends Persistable<ID>, D, ID, R extends Li
         return updated;
     }
 
+    @Override
     public void delete(ID id) {
         var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
         onBeforeDelete(model);
@@ -58,28 +60,38 @@ public abstract class CrudService<M extends Persistable<ID>, D, ID, R extends Li
         onAfterDelete(model);
     }
 
+    @Override
     public List<M> list(String search) {
         var list = StringUtils.isNullOrEmpty(search) ? repository.findAll() : search(search);
         onList(list);
         return list;
     }
 
+    @Override
     public Page<M> page(String search, Pageable pageable) {
         var page = StringUtils.isNullOrEmpty(search) ? repository.findAll(pageable) : search(search, pageable);
         onPage(page);
         return page;
     }
 
+    @Override
     public M find(ID id) {
         var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
         onFind(model);
         return model;
     }
 
+    @Override
+    public List<M> find(List<ID> ids) {
+        return repository.findAllById(ids);
+    }
+
+    @Override
     public long count() {
         return repository.count();
     }
 
+    @Override
     public boolean exists(ID id) {
         return repository.existsById(id);
     }

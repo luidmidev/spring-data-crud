@@ -30,35 +30,40 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
     protected final R repository;
     protected final Class<M> domainClass;
 
-
+    @Override
     public List<M> list(String search) {
         var list = StringUtils.isNullOrEmpty(search) ? repository.findAll() : search(search);
         onList(list);
         return list;
     }
 
+    @Override
     public Page<M> page(String search, Pageable pageable) {
         var page = StringUtils.isNullOrEmpty(search) ? repository.findAll(pageable) : search(search, pageable);
         onPage(page);
         return page;
     }
 
+    @Override
     public M find(ID id) {
         var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
         onFind(model);
         return model;
     }
 
+    @Override
     public List<M> find(List<ID> ids) {
         var list = repository.findAllById(ids);
         onList(list);
         return list;
     }
 
+    @Override
     public long count() {
         return repository.count();
     }
 
+    @Override
     public boolean exists(ID id) {
         return repository.existsById(id);
     }

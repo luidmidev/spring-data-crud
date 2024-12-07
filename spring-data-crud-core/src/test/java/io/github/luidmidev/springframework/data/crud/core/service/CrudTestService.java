@@ -34,5 +34,4 @@ public class CrudTestService extends CrudService<Person, PersonDto, Long, InMemo
     public void reset() {
         repository.reset();
     }
-
 }
