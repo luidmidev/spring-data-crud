@@ -46,7 +46,7 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
     }
 
     @GetMapping("/ids")
-    default ResponseEntity<List<M>> findAllById(@RequestBody List<ID> ids) {
+    default ResponseEntity<List<M>> find(@RequestParam List<ID> ids) {
         return ResponseEntity.ok(getService().find(ids));
     }
 
