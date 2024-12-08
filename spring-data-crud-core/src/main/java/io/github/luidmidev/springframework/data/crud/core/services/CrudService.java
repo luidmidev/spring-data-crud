@@ -83,7 +83,9 @@ public abstract class CrudService<M extends Persistable<ID>, D, ID, R extends Li
 
     @Override
     public List<M> find(List<ID> ids) {
-        return repository.findAllById(ids);
+        var list = repository.findAllById(ids);
+        onList(list);
+        return list;
     }
 
     @Override
