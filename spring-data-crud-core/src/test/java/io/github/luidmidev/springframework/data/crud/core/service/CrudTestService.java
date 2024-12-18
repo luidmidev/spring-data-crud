@@ -1,5 +1,6 @@
 package io.github.luidmidev.springframework.data.crud.core.service;
 
+import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.core.repositories.InMemoryRepository;
 import io.github.luidmidev.springframework.data.crud.core.repositories.InMemoryRepository.IdStrategyGenerator;
 import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
@@ -29,6 +30,16 @@ public class CrudTestService extends CrudService<Person, PersonDto, Long, InMemo
     @Override
     protected Page<Person> search(String search, Pageable pageable) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected List<Person> search(String search, Filter filter) {
+        return List.of();
+    }
+
+    @Override
+    protected Page<Person> search(String search, Pageable pageable, Filter filter) {
+        return null;
     }
 
     public void reset() {

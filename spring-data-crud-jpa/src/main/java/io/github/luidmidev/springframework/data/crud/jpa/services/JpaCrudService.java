@@ -39,5 +39,4 @@ public abstract class JpaCrudService<M extends Persistable<ID>, D, ID, R extends
     public List<M> search(String search) {
         return AdvanceSearch.search(entityManager, search, domainClass);
     }
-
 }

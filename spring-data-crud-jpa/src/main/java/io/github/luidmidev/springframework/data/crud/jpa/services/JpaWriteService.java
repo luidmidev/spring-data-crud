@@ -22,7 +22,6 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public abstract class JpaWriteService<M extends Persistable<ID>, D, ID, R extends JpaRepository<M, ID>> extends WriteService<M, D, ID, R> {
 
-
     protected final EntityManager entityManager;
 
     protected JpaWriteService(R repository, Class<M> domainClass, EntityManager entityManager) {

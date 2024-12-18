@@ -2,6 +2,7 @@ package io.github.luidmidev.springframework.data.crud.core.services;
 
 
 import io.github.luidmidev.springframework.data.crud.core.NotFoundProvider;
+import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
 import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -31,15 +32,15 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
     protected final Class<M> domainClass;
 
     @Override
-    public List<M> list(String search) {
-        var list = StringUtils.isNullOrEmpty(search) ? repository.findAll() : search(search);
+    public List<M> list(String search, Filter filter) {
+        var list = resolverSearch(search, filter);
         onList(list);
         return list;
     }
 
     @Override
-    public Page<M> page(String search, Pageable pageable) {
-        var page = StringUtils.isNullOrEmpty(search) ? repository.findAll(pageable) : search(search, pageable);
+    public Page<M> page(String search, Pageable pageable, Filter filter) {
+        var page = resolverSearch(search, pageable, filter);
         onPage(page);
         return page;
     }
@@ -68,9 +69,25 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
         return repository.existsById(id);
     }
 
+    protected List<M> resolverSearch(String search, Filter filter) {
+        if (StringUtils.isNullOrEmpty(search) && filter == null) return repository.findAll();
+        if (filter == null) return search(search);
+        return search(search, filter);
+    }
+
+    protected Page<M> resolverSearch(String search, Pageable pageable, Filter filter) {
+        if (StringUtils.isNullOrEmpty(search) && filter == null) return repository.findAll(pageable);
+        if (filter == null) return search(search, pageable);
+        return search(search, pageable, filter);
+    }
+
     protected abstract List<M> search(String search);
 
     protected abstract Page<M> search(String search, Pageable pageable);
+
+    protected abstract List<M> search(String search, Filter filter);
+
+    protected abstract Page<M> search(String search, Pageable pageable, Filter filter);
 
     protected void onFind(M model) {
     }

@@ -17,6 +17,7 @@ import java.lang.reflect.ParameterizedType;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -143,6 +144,12 @@ public class AdvanceSearch {
             predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
         }
 
+        if (UUID.class.isAssignableFrom(type)) {
+            var pathAttribute = path.<UUID>get(field.getName()).as(String.class);
+            predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
+        }
+
+
         if (Number.class.isAssignableFrom(type)) {
             for (var fromString : FROM_STRINGS) {
                 addNumberPredicate(predicates, search, fromString, cb, path, field);
@@ -226,6 +233,7 @@ public class AdvanceSearch {
     }
 
     private static boolean isStringDatabaseValue(Class<? extends AttributeConverter<?, ?>> converter) {
+        if (converter.getGenericInterfaces().length == 0) return false;
         var genericInterface = (ParameterizedType) converter.getGenericInterfaces()[0];
         Class<?> databaseType = (Class<?>) genericInterface.getActualTypeArguments()[1];
         return String.class.equals(databaseType);
