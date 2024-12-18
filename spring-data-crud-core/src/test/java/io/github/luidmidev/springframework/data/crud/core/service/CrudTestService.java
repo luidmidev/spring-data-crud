@@ -6,6 +6,7 @@ import io.github.luidmidev.springframework.data.crud.core.repositories.InMemoryR
 import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class CrudTestService extends CrudService<Person, PersonDto, Long, InMemo
     }
 
     @Override
-    protected List<Person> search(String search) {
+    protected List<Person> search(String search, Sort sort, Filter filter) {
         throw new UnsupportedOperationException();
     }
 
@@ -33,7 +34,7 @@ public class CrudTestService extends CrudService<Person, PersonDto, Long, InMemo
     }
 
     @Override
-    protected List<Person> search(String search, Filter filter) {
+    protected List<Person> search(String search, Sort sort) {
         return List.of();
     }
 

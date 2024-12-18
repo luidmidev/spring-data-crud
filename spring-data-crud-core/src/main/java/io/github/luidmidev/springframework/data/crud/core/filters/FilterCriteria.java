@@ -1,29 +1,41 @@
 package io.github.luidmidev.springframework.data.crud.core.filters;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.List;
 
-@Data
-@AllArgsConstructor
+@ToString
+@Getter
+@AllArgsConstructor(access = lombok.AccessLevel.PACKAGE)
 public class FilterCriteria {
 
-    private String field;
-
+    private String property;
     private FilterOperator operator;
-
     private Object value;
 
-    public <T> T getValue(Class<T> clazz) {
+    public <T> T value(Class<T> clazz) {
         return clazz.cast(value);
     }
 
-    public <T> List<T> getValues(Class<T> clazz) {
+    public Object value() {
+        return value;
+    }
+
+    public <T> List<T> values(Class<T> clazz) {
         if (value instanceof List<?> list) {
             return list.stream().map(clazz::cast).toList();
-        } else {
-            throw new ClassCastException("Value is not a list");
         }
+        throw new ClassCastException("Value is not a list");
+
+    }
+
+    public List<?> values() {
+        if (value instanceof List<?> list) {
+            return list;
+        }
+        throw new ClassCastException("Value is not a list");
+
     }
 }

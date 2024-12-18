@@ -7,10 +7,9 @@ import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * CRUD Service for JPA
@@ -31,12 +30,14 @@ public abstract class JpaCrudService<M extends Persistable<ID>, D, ID, R extends
     }
 
     @Override
+    public Iterable<M> search(String search, Sort sort) {
+        return AdvanceSearch.search(entityManager, search, sort, domainClass);
+    }
+
+    @Override
     public Page<M> search(String search, Pageable pageable) {
         return AdvanceSearch.search(entityManager, search, pageable, domainClass);
     }
 
-    @Override
-    public List<M> search(String search) {
-        return AdvanceSearch.search(entityManager, search, domainClass);
-    }
+
 }

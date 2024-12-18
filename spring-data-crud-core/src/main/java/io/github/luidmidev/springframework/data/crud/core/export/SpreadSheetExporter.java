@@ -10,10 +10,10 @@ import io.github.luidmidev.apache.poi.WorkbookManagerUtils;
 import io.github.luidmidev.apache.poi.exceptions.WorkbookException;
 import io.github.luidmidev.apache.poi.model.SpreadSheetFile;
 import io.github.luidmidev.apache.poi.model.WorkbookType;
-import io.github.luidmidev.springframework.data.crud.core.Filters;
 import io.github.luidmidev.springframework.data.crud.core.utils.HeadersUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.springframework.core.io.ByteArrayResource;
@@ -35,7 +35,7 @@ public class SpreadSheetExporter implements Exporter {
     private final Map<Class<?>, Map<String, Method>> methodCache = new ConcurrentHashMap<>();
 
 
-    public ResponseEntity<ByteArrayResource> export(List<?> elements, ExportConfig config) {
+    public ResponseEntity<ByteArrayResource> export(Iterable<?> elements, ExportConfig config) {
 
         try {
             log.debug("Generating report with config: {}", config);
@@ -50,14 +50,14 @@ public class SpreadSheetExporter implements Exporter {
         }
     }
 
-    private <T> WorkbookManager getWorkbookModelBuilder(ExportConfig config, List<T> elements) throws WorkbookException {
+    private <T> WorkbookManager getWorkbookModelBuilder(ExportConfig config, Iterable<T> elements) throws WorkbookException {
         var columns = config.getColumns();
         var headerStyle = CellStylizer.init()
                 .fontBold()
                 .allBorders(BorderStyle.THIN);
 
 
-        return WorkbookListMapper.from(elements)
+        return WorkbookListMapper.from(Lists.newArrayList(elements.iterator()))
                 .map((manager, configuration) -> {
                     for (var column : columns) {
                         configuration.withColumn(column.title(), element -> getValueSafely(column.field(), element));

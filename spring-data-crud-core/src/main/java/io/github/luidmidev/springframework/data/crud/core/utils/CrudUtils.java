@@ -5,9 +5,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-public final class PageableUtils {
+public final class CrudUtils {
 
-    private PageableUtils() {
+    private CrudUtils() {
     }
 
     public static Pageable resolvePage(int size, int page, Sort.Direction direction, String... properties) {
@@ -17,5 +17,12 @@ public final class PageableUtils {
             return PageRequest.of(page, size, direction, properties);
         }
         return PageRequest.of(page, size);
+    }
+
+    public static Sort resolveSort(Sort.Direction direction, String... properties) {
+        if (direction != null && properties != null && properties.length > 0) {
+            return Sort.by(direction, properties);
+        }
+        return Sort.unsorted();
     }
 }

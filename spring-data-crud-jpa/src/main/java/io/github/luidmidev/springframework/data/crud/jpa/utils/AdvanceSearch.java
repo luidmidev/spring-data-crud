@@ -43,8 +43,8 @@ public class AdvanceSearch {
         return search(em, search, pageable, null, domainClass);
     }
 
-    public static <M> List<M> search(EntityManager em, String search, Class<M> domainClass) {
-        return search(em, search, (AdditionsSearch<M>) null, domainClass);
+    public static <M> List<M> search(EntityManager em, String search, Sort sort, Class<M> domainClass) {
+        return search(em, search, sort, null, domainClass);
     }
 
 
@@ -69,8 +69,15 @@ public class AdvanceSearch {
         });
     }
 
-    public static <M> List<M> search(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> domainClass) {
-        return createQueryExecutor(em, search, additions, domainClass, (cb, query, root) -> em.createQuery(query).getResultList());
+    public static <M> List<M> search(EntityManager em, String search, Sort sort, AdditionsSearch<M> additions, Class<M> domainClass) {
+        return createQueryExecutor(em, search, additions, domainClass, (cb, query, root) -> {
+
+            if (sort.isSorted()) {
+                query.orderBy(resolveOrders(sort, cb, root));
+            }
+
+            return em.createQuery(query).getResultList();
+        });
     }
 
     public static <M> long countBySearch(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> domainClass) {

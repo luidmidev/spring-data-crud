@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.validation.annotation.Validated;
@@ -32,15 +33,15 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
     protected final Class<M> domainClass;
 
     @Override
-    public List<M> list(String search, Filter filter) {
-        var list = resolverSearch(search, filter);
+    public Iterable<M> all(String search, Sort sort, Filter filter) {
+        var list = resolveSearch(search, sort, filter);
         onList(list);
         return list;
     }
 
     @Override
     public Page<M> page(String search, Pageable pageable, Filter filter) {
-        var page = resolverSearch(search, pageable, filter);
+        var page = resolveSearch(search, pageable, filter);
         onPage(page);
         return page;
     }
@@ -69,30 +70,37 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
         return repository.existsById(id);
     }
 
-    protected List<M> resolverSearch(String search, Filter filter) {
-        if (StringUtils.isNullOrEmpty(search) && filter == null) return repository.findAll();
-        if (filter == null) return search(search);
-        return search(search, filter);
+    protected Iterable<M> resolveSearch(String search, Sort sort, Filter filter) {
+        if (StringUtils.isNullOrEmpty(search) && filter == null) return repository.findAll(sort);
+        if (filter == null) return search(search, sort);
+        return search(search, sort, filter);
     }
 
-    protected Page<M> resolverSearch(String search, Pageable pageable, Filter filter) {
+    protected Page<M> resolveSearch(String search, Pageable pageable, Filter filter) {
         if (StringUtils.isNullOrEmpty(search) && filter == null) return repository.findAll(pageable);
         if (filter == null) return search(search, pageable);
         return search(search, pageable, filter);
     }
 
-    protected abstract List<M> search(String search);
+    protected abstract Iterable<M> search(String search, Sort sort);
+
+    @SuppressWarnings("unused")
+    protected Iterable<M> search(String search, Sort sort, Filter filter) {
+        return search(search, sort);
+    }
 
     protected abstract Page<M> search(String search, Pageable pageable);
 
-    protected abstract List<M> search(String search, Filter filter);
+    @SuppressWarnings("unused")
+    protected Page<M> search(String search, Pageable pageable, Filter filter) {
+        return search(search, pageable);
+    }
 
-    protected abstract Page<M> search(String search, Pageable pageable, Filter filter);
 
     protected void onFind(M model) {
     }
 
-    protected void onList(List<M> models) {
+    protected void onList(Iterable<M> models) {
     }
 
     protected void onPage(Page<M> page) {

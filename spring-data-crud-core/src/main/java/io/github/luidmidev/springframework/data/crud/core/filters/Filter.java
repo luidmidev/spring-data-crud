@@ -4,15 +4,16 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Data
 public class Filter {
     private List<FilterCriteria> filters = new ArrayList<>();
 
-    public FilterCriteria get(String field) {
+    public Optional<FilterCriteria> get(String property) {
         return filters
                 .stream()
-                .filter(filter -> filter.getField().equals(field)).findFirst()
-                .orElse(null);
+                .filter(filter -> filter.getProperty().equals(property))
+                .findFirst();
     }
 }

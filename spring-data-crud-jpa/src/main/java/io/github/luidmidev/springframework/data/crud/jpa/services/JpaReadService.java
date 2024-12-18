@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,7 @@ import java.util.List;
  */
 @Transactional
 public abstract class JpaReadService<M extends Persistable<ID>, ID, R extends JpaRepository<M, ID>> extends ReadService<M, ID, R> {
-    
+
     protected final EntityManager entityManager;
 
     protected JpaReadService(R repository, Class<M> domainClass, EntityManager entityManager) {
@@ -30,13 +31,13 @@ public abstract class JpaReadService<M extends Persistable<ID>, ID, R extends Jp
     }
 
     @Override
-    public Page<M> search(String search, Pageable pageable) {
-        return AdvanceSearch.search(entityManager, search, pageable, domainClass);
+    public Iterable<M> search(String search, Sort sort) {
+        return AdvanceSearch.search(entityManager, search, sort, domainClass);
     }
 
     @Override
-    public List<M> search(String search) {
-        return AdvanceSearch.search(entityManager, search, domainClass);
+    public Page<M> search(String search, Pageable pageable) {
+        return AdvanceSearch.search(entityManager, search, pageable, domainClass);
     }
 
 }

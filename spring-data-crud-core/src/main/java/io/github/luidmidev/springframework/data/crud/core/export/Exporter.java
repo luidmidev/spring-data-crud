@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface Exporter {
 
-    ResponseEntity<ByteArrayResource> export(List<?> elements, ExportConfig config);
+    ResponseEntity<ByteArrayResource> export(Iterable<?> elements, ExportConfig config);
 
 }

@@ -4,7 +4,7 @@ package io.github.luidmidev.springframework.data.crud.core.controllers;
 import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
-import io.github.luidmidev.springframework.data.crud.core.utils.PageableUtils;
+import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.domain.Sort;
@@ -23,11 +23,14 @@ import java.util.List;
 public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOperations<M, ID>> extends ServiceProvider<S> {
 
     @GetMapping
-    default ResponseEntity<List<M>> list(
+    default ResponseEntity<Iterable<M>> all(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String[] properties,
+            @RequestParam(required = false) Sort.Direction direction,
             @RequestParam(required = false) Filter filter
     ) {
-        return ResponseEntity.ok(getService().list(search, filter));
+        var sort = CrudUtils.resolveSort(direction, properties);
+        return ResponseEntity.ok(getService().all(search, sort, filter));
     }
 
     @GetMapping("/page")
@@ -39,7 +42,7 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
             @RequestParam(required = false) Sort.Direction direction,
             @RequestParam(required = false) Filter filter
     ) {
-        var pageable = PageableUtils.resolvePage(size, page, direction, properties);
+        var pageable = CrudUtils.resolvePage(size, page, direction, properties);
         return ResponseEntity.ok(getService().page(search, pageable, filter));
     }
 
@@ -58,8 +61,8 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
         return ResponseEntity.ok(getService().count());
     }
 
-    @PostMapping("/exists")
-    default ResponseEntity<Boolean> exists(@RequestBody ID id) {
+    @GetMapping("/exists")
+    default ResponseEntity<Boolean> exists(@RequestParam ID id) {
         return ResponseEntity.ok(getService().exists(id));
     }
 }

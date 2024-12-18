@@ -1,7 +1,6 @@
 package io.github.luidmidev.springframework.data.crud.core.filters;
 
 
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.Nullable;
@@ -23,7 +22,7 @@ public class FilterConverter implements Converter<String, Filter> {
 
         var parts = source.split("(?<!\\\\),");
         if (parts.length == 0) {
-            throw ApiError.badRequest("Invalid filter format. Expected: " + FORMAT + ". Example: " + EXAMPLE);
+            throw new CrudFilterException("Invalid filter format. Expected: " + FORMAT + ". Example: " + EXAMPLE + ". Received: " + source);
         }
 
         var filter = new Filter();
@@ -34,7 +33,7 @@ public class FilterConverter implements Converter<String, Filter> {
             var components = part.split("(?<!\\\\):");
 
             if (components.length != 3) {
-                throw ApiError.badRequest("Invalid filter format. Expected: " + FORMAT + ". Example: " + EXAMPLE);
+                throw new CrudFilterException("Invalid filter format. Expected: " + FORMAT + ". Example: " + EXAMPLE);
             }
 
             var field = unescape(components[0]);
@@ -49,7 +48,9 @@ public class FilterConverter implements Converter<String, Filter> {
     }
 
     private static String unescape(String input) {
-        return input.replace("\\,", ",").replace("\\:", ":");
+        return input
+                .replace("\\,", ",")
+                .replace("\\:", ":");
     }
 
     private static FilterOperator operator(String operator) {
@@ -57,6 +58,6 @@ public class FilterConverter implements Converter<String, Filter> {
                 .stream(FilterOperator.values())
                 .filter(op -> op.getValue().equals(operator))
                 .findFirst()
-                .orElseThrow(() -> ApiError.badRequest("Invalid operator: " + operator));
+                .orElseThrow(() -> new CrudFilterException("Invalid operator: " + operator));
     }
 }
