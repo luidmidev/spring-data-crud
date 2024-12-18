@@ -116,6 +116,9 @@ public class InMemoryRepository<T, ID> implements ListCrudRepository<T, ID>, Lis
 
     @Override
     public @NotNull List<T> findAll(@NotNull Sort sort) {
+        if (sort.isUnsorted()) {
+            return findAll();
+        }
         throw new UnsupportedOperationException("Sorting is not supported for in-memory repository.");
     }
 

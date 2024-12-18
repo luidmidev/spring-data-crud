@@ -13,7 +13,7 @@ public class Filter {
     public Optional<FilterCriteria> get(String property) {
         return filters
                 .stream()
-                .filter(filter -> filter.getProperty().equals(property))
+                .filter(filter -> filter.property().equals(property))
                 .findFirst();
     }
 }
