@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 public class FilterProcessor {
 
+    @SafeVarargs
     public static <T> T process(Filter filter, Supplier<T> noFilterProcessor, FilterMatcherResolver<T>... resolvers) {
         for (var resolver : resolvers) {
             var values = extractMatchingValues(filter, resolver.criteria());

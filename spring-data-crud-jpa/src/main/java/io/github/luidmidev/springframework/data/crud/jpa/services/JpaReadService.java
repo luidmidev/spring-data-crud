@@ -31,12 +31,7 @@ public abstract class JpaReadService<M extends Persistable<ID>, ID, R extends Jp
     }
 
     @Override
-    public Iterable<M> search(String search, Sort sort) {
-        return AdvanceSearch.search(entityManager, search, sort, domainClass);
-    }
-
-    @Override
-    public Page<M> search(String search, Pageable pageable) {
+    protected Page<M> search(String search, Pageable pageable) {
         return AdvanceSearch.search(entityManager, search, pageable, domainClass);
     }
 

@@ -6,10 +6,7 @@ import io.github.luidmidev.springframework.data.crud.core.repositories.InMemoryR
 import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class CrudTestService extends CrudService<Person, PersonDto, Long, InMemoryRepository<Person, Long>> {
@@ -23,23 +20,19 @@ public class CrudTestService extends CrudService<Person, PersonDto, Long, InMemo
         model.setName(dto.getName());
     }
 
-    @Override
-    protected List<Person> search(String search, Sort sort, Filter filter) {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     protected Page<Person> search(String search, Pageable pageable) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected List<Person> search(String search, Sort sort) {
-        return List.of();
+        return null;
     }
 
     @Override
     protected Page<Person> search(String search, Pageable pageable, Filter filter) {
+        return null;
+    }
+
+    @Override
+    protected Page<Person> search(Pageable pageable, Filter filter) {
         return null;
     }
 

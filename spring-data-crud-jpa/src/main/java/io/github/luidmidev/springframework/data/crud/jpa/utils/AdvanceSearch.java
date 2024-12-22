@@ -215,7 +215,7 @@ public class AdvanceSearch {
 
     private static <M> Predicate getPredicatesSearchPredicate(String search, AdditionsSearch<M> additions, CriteriaBuilder cb, CriteriaQuery<?> query, Root<M> root, Class<M> domainClass) {
 
-        var isNullOrEmpty = StringUtils.isNullOrEmpty(search);
+        var isNullOrEmpty = StringUtils.isEmpty(search);
 
         if (isNullOrEmpty) {
             if (additions == null) return cb.conjunction();

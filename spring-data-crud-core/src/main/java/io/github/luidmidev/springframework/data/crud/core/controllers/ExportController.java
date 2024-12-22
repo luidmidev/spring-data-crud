@@ -21,21 +21,6 @@ public interface ExportController<ID, S extends ReadOperations<?, ID>> extends S
     Exporter getExporter();
 
     @GetMapping("/export")
-    default ResponseEntity<ByteArrayResource> exportAll(
-            @RequestParam List<String> fields,
-            @RequestParam List<String> titles,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String[] properties,
-            @RequestParam(required = false) Sort.Direction direction,
-            @RequestParam(required = false) Filter filter
-    ) {
-        var sort = CrudUtils.resolveSort(direction, properties);
-        var config = ExportConfig.of(fields, titles);
-        return getExporter().export(getService().all(search, sort, filter), config);
-    }
-
-
-    @GetMapping("/export/page")
     default ResponseEntity<ByteArrayResource> exportPage(
             @RequestParam List<String> fields,
             @RequestParam List<String> titles,

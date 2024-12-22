@@ -1,7 +1,6 @@
 package io.github.luidmidev.springframework.data.crud.core;
 
 import io.github.luidmidev.springframework.data.crud.core.service.CrudTestService;
-import io.github.luidmidev.springframework.data.crud.core.service.Person;
 import io.github.luidmidev.springframework.data.crud.core.service.PersonDto;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
@@ -80,20 +78,6 @@ class CrudTest {
 
         var foundModel = crudService.find(id);
         Assertions.assertEquals(model, foundModel);
-    }
-
-    @Test
-    void list() {
-        var dto = new PersonDto();
-        dto.setName("juan");
-        crudService.create(dto);
-
-        var dto2 = new PersonDto();
-        dto2.setName("pedro");
-        crudService.create(dto2);
-
-        Iterable<Person> all = crudService.all(null, Sort.unsorted(), null);
-        Assertions.assertEquals(2, all.spliterator().getExactSizeIfKnown());
     }
 
     @Test

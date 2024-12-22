@@ -22,11 +22,6 @@ public enum CrudOperation {
     DELETE(true, false),
 
     /**
-     * Represents a list operation (read only).
-     */
-    LIST(false, true),
-
-    /**
      * Represents a paginated read operation.
      */
     PAGE(false, true),

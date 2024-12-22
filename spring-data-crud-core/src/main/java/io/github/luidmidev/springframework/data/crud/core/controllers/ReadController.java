@@ -23,17 +23,6 @@ import java.util.List;
 public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOperations<M, ID>> extends ServiceProvider<S> {
 
     @GetMapping
-    default ResponseEntity<Iterable<M>> all(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String[] properties,
-            @RequestParam(required = false) Sort.Direction direction,
-            @RequestParam(required = false) Filter filter
-    ) {
-        var sort = CrudUtils.resolveSort(direction, properties);
-        return ResponseEntity.ok(getService().all(search, sort, filter));
-    }
-
-    @GetMapping("/page")
     default ResponseEntity<Page<M>> page(
             @RequestParam(required = false) String search,
             @RequestParam(required = false, defaultValue = "20") int size,

@@ -33,7 +33,7 @@ public class FilterConverter implements Converter<String, Filter> {
             var components = part.split("(?<!\\\\):");
 
             if (components.length != 3) {
-                throw new CrudFilterException("Invalid filter format. Expected: " + FORMAT + ". Example: " + EXAMPLE);
+                throw new CrudFilterException("Invalid filter format. Expected: " + FORMAT + ". Example: " + EXAMPLE + ". Received: " + part);
             }
 
             var field = unescape(components[0]);

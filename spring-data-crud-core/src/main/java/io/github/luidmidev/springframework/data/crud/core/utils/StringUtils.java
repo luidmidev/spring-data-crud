@@ -24,8 +24,11 @@ public final class StringUtils {
         }
     }
 
-    public static boolean isNullOrEmpty(String string) {
+    public static boolean isEmpty(String string) {
         return string == null || string.isEmpty();
     }
 
+    public static boolean isBlank(String string) {
+        return string == null || string.isBlank();
+    }
 }
