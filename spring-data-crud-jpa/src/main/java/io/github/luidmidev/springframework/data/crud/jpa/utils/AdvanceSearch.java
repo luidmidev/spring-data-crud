@@ -55,6 +55,15 @@ public class AdvanceSearch {
                 query.orderBy(resolveOrders(pageable.getSort(), cb, root));
             }
 
+            if (pageable.isUnpaged()) {
+                var results = em.createQuery(query).getResultList();
+                return PageableExecutionUtils.getPage(
+                        results,
+                        pageable,
+                        results::size
+                );
+            }
+
             var results = em
                     .createQuery(query)
                     .setFirstResult((int) pageable.getOffset())
