@@ -72,9 +72,6 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
         if (search == null && filter == null) {
             return repository.findAll(pageable);
         }
-        if (search == null) {
-            return search(pageable, filter);
-        }
         if (filter == null) {
             return search(search, pageable);
         }
@@ -84,8 +81,6 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
     protected abstract Page<M> search(String search, Pageable pageable);
 
     protected abstract Page<M> search(String search, Pageable pageable, Filter filter);
-
-    protected abstract Page<M> search(Pageable pageable, Filter filter);
 
     protected void onFind(M model) {
     }

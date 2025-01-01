@@ -31,11 +31,6 @@ public class CrudTestService extends CrudService<Person, PersonDto, Long, InMemo
         return null;
     }
 
-    @Override
-    protected Page<Person> search(Pageable pageable, Filter filter) {
-        return null;
-    }
-
     public void reset() {
         repository.reset();
     }

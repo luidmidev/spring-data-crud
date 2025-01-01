@@ -16,15 +16,15 @@ public class FilterProcessor {
         return noFilterProcessor.get();
     }
 
-    private static Object[] extractMatchingValues(Filter filter, FilterMatcher[] criteria) {
-        var values = new Object[criteria.length];
-        for (int i = 0; i < criteria.length; i++) {
-            var criterion = criteria[i];
-            var optionalCriteria = filter.get(criterion.property());
-            if (optionalCriteria.isEmpty() || optionalCriteria.get().operator() != criterion.operator()) {
+    private static Object[] extractMatchingValues(Filter filter, FilterMatcher[] matchers) {
+        var values = new Object[matchers.length];
+        for (int i = 0; i < matchers.length; i++) {
+            var matcher = matchers[i];
+            var criteria = filter.get(matcher.property());
+            if (criteria == null || criteria.operator() != matcher.operator()) {
                 return new Object[0];
             }
-            values[i] = optionalCriteria.get().value();
+            values[i] = criteria.value();
         }
         return values;
     }
