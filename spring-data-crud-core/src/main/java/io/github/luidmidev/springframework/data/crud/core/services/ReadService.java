@@ -2,7 +2,6 @@ package io.github.luidmidev.springframework.data.crud.core.services;
 
 
 import io.github.luidmidev.springframework.data.crud.core.NotFoundProvider;
-import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
 import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
@@ -32,9 +32,9 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
     protected final Class<M> domainClass;
 
     @Override
-    public Page<M> page(String search, Pageable pageable, Filter filter) {
+    public Page<M> page(String search, Pageable pageable, MultiValueMap<String, String> params) {
         var normalizedSearch = normalizeSearch(search);
-        var page = resolvePage(normalizedSearch, pageable, filter);
+        var page = resolvePage(normalizedSearch, pageable, params);
         onPage(page);
         return page;
     }
@@ -68,19 +68,24 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
         return StringUtils.isBlank(search) ? null : search.trim();
     }
 
-    private Page<M> resolvePage(String search, Pageable pageable, Filter filter) {
-        if (search == null && filter == null) {
+    private Page<M> resolvePage(String search, Pageable pageable, MultiValueMap<String, String> params) {
+
+        var noParams = params == null || params.isEmpty();
+
+        if (search == null && noParams) {
             return repository.findAll(pageable);
         }
-        if (filter == null) {
+
+        if (noParams) {
             return search(search, pageable);
         }
-        return search(search, pageable, filter);
+
+        return search(search, pageable, params);
     }
 
     protected abstract Page<M> search(String search, Pageable pageable);
 
-    protected abstract Page<M> search(String search, Pageable pageable, Filter filter);
+    protected abstract Page<M> search(String search, Pageable pageable, MultiValueMap<String, String> filter);
 
     protected void onFind(M model) {
     }

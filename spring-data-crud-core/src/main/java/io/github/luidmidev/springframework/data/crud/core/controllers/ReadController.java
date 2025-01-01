@@ -2,13 +2,13 @@ package io.github.luidmidev.springframework.data.crud.core.controllers;
 
 
 import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
-import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
 import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,10 +29,17 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false) String[] properties,
             @RequestParam(required = false) Sort.Direction direction,
-            @RequestParam(required = false) Filter filter
+            @RequestParam(required = false) MultiValueMap<String, String> params
     ) {
+        if (params != null) {
+            params.remove("search");
+            params.remove("size");
+            params.remove("page");
+            params.remove("properties");
+            params.remove("direction");
+        }
         var pageable = CrudUtils.resolvePage(size, page, direction, properties);
-        return ResponseEntity.ok(getService().page(search, pageable, filter));
+        return ResponseEntity.ok(getService().page(search, pageable, params));
     }
 
     @GetMapping("/{id}")

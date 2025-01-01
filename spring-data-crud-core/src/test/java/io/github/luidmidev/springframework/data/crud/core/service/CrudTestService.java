@@ -1,12 +1,12 @@
 package io.github.luidmidev.springframework.data.crud.core.service;
 
-import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.core.repositories.InMemoryRepository;
 import io.github.luidmidev.springframework.data.crud.core.repositories.InMemoryRepository.IdStrategyGenerator;
 import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 @Service
 public class CrudTestService extends CrudService<Person, PersonDto, Long, InMemoryRepository<Person, Long>> {
@@ -27,7 +27,7 @@ public class CrudTestService extends CrudService<Person, PersonDto, Long, InMemo
     }
 
     @Override
-    protected Page<Person> search(String search, Pageable pageable, Filter filter) {
+    protected Page<Person> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
         return null;
     }
 

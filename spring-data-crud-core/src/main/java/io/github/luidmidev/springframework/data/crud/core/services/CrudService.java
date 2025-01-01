@@ -30,9 +30,9 @@ public abstract class CrudService<M extends Persistable<ID>, D, ID, R extends Li
     public M create(@Valid @NotNull D dto) {
         var model = domainClass.getConstructor().newInstance();
         mapModel(dto, model);
-        onBeforeCreate(model);
+        onBeforeCreate(dto, model);
         var created = repository.save(model);
-        onAfterCreate(created);
+        onAfterCreate(dto, created);
         return created;
     }
 
@@ -40,9 +40,9 @@ public abstract class CrudService<M extends Persistable<ID>, D, ID, R extends Li
     public M update(@NotNull ID id, @Valid @NotNull D dto) {
         var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
         mapModel(dto, model);
-        onBeforeUpdate(model);
+        onBeforeUpdate(dto, model);
         var updated = repository.save(model);
-        onAfterUpdate(updated);
+        onAfterUpdate(dto, updated);
         return updated;
     }
 
@@ -56,19 +56,19 @@ public abstract class CrudService<M extends Persistable<ID>, D, ID, R extends Li
 
     protected abstract void mapModel(D dto, M model);
 
-    protected void onBeforeCreate(M model) {
+    protected void onBeforeCreate(D dto, M model) {
     }
 
-    protected void onBeforeUpdate(M model) {
+    protected void onBeforeUpdate(D dto, M model) {
     }
 
     protected void onBeforeDelete(M model) {
     }
 
-    protected void onAfterCreate(M model) {
+    protected void onAfterCreate(D dto, M model) {
     }
 
-    protected void onAfterUpdate(M model) {
+    protected void onAfterUpdate(D dto, M model) {
     }
 
     protected void onAfterDelete(M model) {

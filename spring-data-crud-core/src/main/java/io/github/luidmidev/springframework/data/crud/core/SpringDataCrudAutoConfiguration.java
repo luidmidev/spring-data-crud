@@ -1,6 +1,5 @@
 package io.github.luidmidev.springframework.data.crud.core;
 
-import io.github.luidmidev.springframework.data.crud.core.filters.FilterConverter;
 import io.github.luidmidev.springframework.data.crud.core.security.AuthorizationCrudManager;
 import io.github.luidmidev.springframework.data.crud.core.security.AuthorizeCrudConfigurer;
 import io.github.luidmidev.springframework.data.crud.core.security.AuthorizeCrudConfigurer.AuthorizationManagerCrudMatcherRegistry;
@@ -20,11 +19,6 @@ public class SpringDataCrudAutoConfiguration {
     public AuthorizationCrudManager authorizationCrudManager(ApplicationContext context, Optional<Customizer<AuthorizationManagerCrudMatcherRegistry>> customizer) {
         var configurer = new AuthorizeCrudConfigurer(context, customizer.orElse(defaultCustomizer()));
         return configurer.authorizationCrudManager();
-    }
-
-    @Bean
-    public FilterConverter filterConverter() {
-        return new FilterConverter();
     }
 
     @Contract(pure = true)
