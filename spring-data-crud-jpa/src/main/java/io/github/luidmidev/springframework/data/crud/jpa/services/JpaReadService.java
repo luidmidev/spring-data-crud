@@ -2,6 +2,7 @@ package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 
 import io.github.luidmidev.springframework.data.crud.core.services.ReadService;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdvanceSearch;
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
@@ -32,4 +33,7 @@ public abstract class JpaReadService<M extends Persistable<ID>, ID, R extends Jp
         return AdvanceSearch.search(entityManager, search, pageable, domainClass);
     }
 
+    protected Page<M> search(String search, Pageable pageable, AdditionsSearch<M> additionsSearch) {
+        return AdvanceSearch.search(entityManager, search, pageable, additionsSearch, domainClass);
+    }
 }

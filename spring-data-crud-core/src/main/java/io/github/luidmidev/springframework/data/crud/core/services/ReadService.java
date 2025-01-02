@@ -56,30 +56,30 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
         return doExists(id);
     }
 
-    public Page<M> doPage(String search, Pageable pageable, MultiValueMap<String, String> params) {
+    protected Page<M> doPage(String search, Pageable pageable, MultiValueMap<String, String> params) {
         var normalizedSearch = normalizeSearch(search);
         var page = resolvePage(normalizedSearch, pageable, params);
         onPage(page);
         return page;
     }
 
-    public M doFind(ID id) {
+    protected M doFind(ID id) {
         var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
         onFind(model);
         return model;
     }
 
-    public List<M> doFind(List<ID> ids) {
+    protected List<M> doFind(List<ID> ids) {
         var list = repository.findAllById(ids);
         onList(list);
         return list;
     }
 
-    public long doCount() {
+    protected long doCount() {
         return repository.count();
     }
 
-    public boolean doExists(ID id) {
+    protected boolean doExists(ID id) {
         return repository.existsById(id);
     }
 
