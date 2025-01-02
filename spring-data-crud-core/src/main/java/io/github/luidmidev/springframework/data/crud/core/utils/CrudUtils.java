@@ -4,6 +4,7 @@ import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.MultiValueMap;
 
 public final class CrudUtils {
 
@@ -24,5 +25,15 @@ public final class CrudUtils {
             return Sort.by(direction, properties);
         }
         return Sort.unsorted();
+    }
+
+    public static void cleanParams(MultiValueMap<String, String> params) {
+        if (params != null && !params.isEmpty()) {
+            params.remove("search");
+            params.remove("size");
+            params.remove("page");
+            params.remove("properties");
+            params.remove("direction");
+        }
     }
 }

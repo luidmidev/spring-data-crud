@@ -33,53 +33,64 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
 
     @Override
     public Page<M> page(String search, Pageable pageable, MultiValueMap<String, String> params) {
+        return doPage(search, pageable, params);
+    }
+
+    @Override
+    public M find(ID id) {
+        return doFind(id);
+    }
+
+    @Override
+    public List<M> find(List<ID> ids) {
+        return doFind(ids);
+    }
+
+    @Override
+    public long count() {
+        return doCount();
+    }
+
+    @Override
+    public boolean exists(ID id) {
+        return doExists(id);
+    }
+
+    public Page<M> doPage(String search, Pageable pageable, MultiValueMap<String, String> params) {
         var normalizedSearch = normalizeSearch(search);
         var page = resolvePage(normalizedSearch, pageable, params);
         onPage(page);
         return page;
     }
 
-    @Override
-    public M find(ID id) {
+    public M doFind(ID id) {
         var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
         onFind(model);
         return model;
     }
 
-    @Override
-    public List<M> find(List<ID> ids) {
+    public List<M> doFind(List<ID> ids) {
         var list = repository.findAllById(ids);
         onList(list);
         return list;
     }
 
-    @Override
-    public long count() {
+    public long doCount() {
         return repository.count();
     }
 
-    @Override
-    public boolean exists(ID id) {
+    public boolean doExists(ID id) {
         return repository.existsById(id);
     }
 
-
-    private static String normalizeSearch(String search) {
-        return StringUtils.isBlank(search) ? null : search.trim();
-    }
-
     private Page<M> resolvePage(String search, Pageable pageable, MultiValueMap<String, String> params) {
-
         var noParams = params == null || params.isEmpty();
-
         if (search == null && noParams) {
             return repository.findAll(pageable);
         }
-
         if (noParams) {
             return search(search, pageable);
         }
-
         return search(search, pageable, params);
     }
 
@@ -95,4 +106,9 @@ public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListC
 
     protected void onPage(Page<M> page) {
     }
+
+    private static String normalizeSearch(String search) {
+        return StringUtils.isBlank(search) ? null : search.trim();
+    }
+
 }

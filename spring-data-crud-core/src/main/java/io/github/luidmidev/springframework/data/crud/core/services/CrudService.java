@@ -26,18 +26,35 @@ public abstract class CrudService<M extends Persistable<ID>, D, ID, R extends Li
         super(repository, domainClass);
     }
 
-    @SneakyThrows
+    @Override
     public M create(@Valid @NotNull D dto) {
-        var model = domainClass.getConstructor().newInstance();
-        mapModel(dto, model);
-        onBeforeCreate(dto, model);
-        var created = repository.save(model);
-        onAfterCreate(dto, created);
-        return created;
+        return doCreate(dto);
     }
 
     @Override
     public M update(@NotNull ID id, @Valid @NotNull D dto) {
+        return doUpdate(id, dto);
+    }
+
+    @Override
+    public void delete(ID id) {
+        doDelete(id);
+    }
+
+    protected abstract void mapModel(D dto, M model);
+
+    @SneakyThrows
+    public M doCreate(@Valid @NotNull D dto) {
+        var model = domainClass.getConstructor().newInstance();
+        mapModel(dto, model);
+        onBeforeCreate(dto, model);
+        repository.save(model);
+        onAfterCreate(dto, model);
+        return model;
+    }
+
+    @SneakyThrows
+    public M doUpdate(@NotNull ID id, @Valid @NotNull D dto) {
         var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
         mapModel(dto, model);
         onBeforeUpdate(dto, model);
@@ -46,15 +63,14 @@ public abstract class CrudService<M extends Persistable<ID>, D, ID, R extends Li
         return updated;
     }
 
-    @Override
-    public void delete(ID id) {
+
+    public void doDelete(@NotNull ID id) {
         var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
         onBeforeDelete(model);
         repository.delete(model);
         onAfterDelete(model);
     }
 
-    protected abstract void mapModel(D dto, M model);
 
     protected void onBeforeCreate(D dto, M model) {
     }

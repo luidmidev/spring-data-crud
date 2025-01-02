@@ -5,6 +5,7 @@ import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
 import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -31,14 +32,7 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
             @RequestParam(required = false) Sort.Direction direction,
             @RequestParam(required = false) MultiValueMap<String, String> params
     ) {
-        if (params != null) {
-            params.remove("search");
-            params.remove("size");
-            params.remove("page");
-            params.remove("properties");
-            params.remove("direction");
-        }
-        var pageable = CrudUtils.resolvePage(size, page, direction, properties);
+        var pageable = processPageParams(size, page, properties, direction, params);
         return ResponseEntity.ok(getService().page(search, pageable, params));
     }
 
@@ -60,5 +54,10 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
     @GetMapping("/exists")
     default ResponseEntity<Boolean> exists(@RequestParam ID id) {
         return ResponseEntity.ok(getService().exists(id));
+    }
+
+    static Pageable processPageParams(int size, int page, String[] properties, Sort.Direction direction, MultiValueMap<String, String> params) {
+        CrudUtils.cleanParams(params);
+        return CrudUtils.resolvePage(size, page, direction, properties);
     }
 }
