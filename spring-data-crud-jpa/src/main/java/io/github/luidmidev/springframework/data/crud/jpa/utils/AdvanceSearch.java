@@ -4,7 +4,7 @@ import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,16 +14,18 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
 /**
  * Utility class for advanced search in JPA
  */
-@Log4j2
+@Slf4j
 @Component
 public class AdvanceSearch {
 
@@ -36,8 +38,27 @@ public class AdvanceSearch {
             FromString.of(Double.class, Double::parseDouble),
             FromString.of(Float.class, Float::parseFloat),
             FromString.of(Short.class, Short::parseShort),
-            FromString.of(Byte.class, Byte::parseByte)
+            FromString.of(Byte.class, Byte::parseByte),
+            FromString.of(BigDecimal.class, BigDecimal::new),
+            FromString.of(int.class, Integer::parseInt),
+            FromString.of(long.class, Long::parseLong),
+            FromString.of(double.class, Double::parseDouble),
+            FromString.of(float.class, Float::parseFloat),
+            FromString.of(short.class, Short::parseShort),
+            FromString.of(byte.class, Byte::parseByte)
     );
+
+    private static Class<?> getWrapperType(Class<?> primitiveType) {
+        if (primitiveType == int.class) return Integer.class;
+        if (primitiveType == long.class) return Long.class;
+        if (primitiveType == double.class) return Double.class;
+        if (primitiveType == float.class) return Float.class;
+        if (primitiveType == boolean.class) return Boolean.class;
+        if (primitiveType == char.class) return Character.class;
+        if (primitiveType == byte.class) return Byte.class;
+        if (primitiveType == short.class) return Short.class;
+        return primitiveType;
+    }
 
     public static <M> Page<M> search(EntityManager em, String search, Pageable pageable, Class<M> domainClass) {
         return search(em, search, pageable, null, domainClass);
@@ -108,7 +129,7 @@ public class AdvanceSearch {
         return cb.or(predicates.toArray(Predicate[]::new));
     }
 
-    @SuppressWarnings("java:S135")
+    @SuppressWarnings({"java:S135", "java:S3776"})
     private static List<Predicate> getSearchPredicates(String search, Path<?> path, CriteriaBuilder cb, Class<?> domainClass) {
 
         var predicates = new ArrayList<Predicate>();
@@ -129,6 +150,10 @@ public class AdvanceSearch {
                 continue;
             }
 
+            if (field.isAnnotationPresent(Enumerated.class)) {
+                addPredicaateEnums(predicates, search, path, cb, field);
+            }
+
             try {
                 var type = field.getType();
                 addPredicatesFromField(search, path, cb, field, type, predicates);
@@ -138,6 +163,37 @@ public class AdvanceSearch {
 
         }
         return predicates;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void addPredicaateEnums(List<Predicate> predicates, String search, Path<?> path, CriteriaBuilder cb, Field field) {
+        if (field.isAnnotationPresent(ElementCollection.class) && path instanceof From<?, ?> from) {
+            var join = from.join(field.getName());
+            var genericType = (ParameterizedType) field.getGenericType();
+            var elementType = (Class<?>) genericType.getActualTypeArguments()[0]; // Obtenemos el tipo del elemento en la colección
+
+            if (elementType.isEnum()) {
+                var enumValues = getEnumValue((Class<? extends Enum<?>>) elementType, search);
+                predicates.add(join.in(enumValues));
+            }
+        } else {
+            var enumType = field.getType();
+            if (enumType.isEnum()) {
+                var pathAttribute = path.get(field.getName());
+                var enumValue = getEnumValue((Class<? extends Enum<?>>) enumType, search);
+                enumValue.ifPresent(value -> predicates.add(cb.equal(pathAttribute, value)));
+            }
+        }
+    }
+
+    private static Optional<? extends Enum<?>> getEnumValue(Class<? extends Enum<?>> enumType, String value) {
+        var constants = enumType.getEnumConstants();
+        for (var constant : constants) {
+            if (constant.name().equalsIgnoreCase(value)) {
+                return Optional.of(constant);
+            }
+        }
+        return Optional.empty();
     }
 
     @SuppressWarnings("unchecked")
@@ -165,8 +221,8 @@ public class AdvanceSearch {
             predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
         }
 
-
-        if (Number.class.isAssignableFrom(type)) {
+        var isNumber = Number.class.isAssignableFrom(type.isPrimitive() ? getWrapperType(type) : type);
+        if (isNumber) {
             for (var fromString : FROM_STRINGS) {
                 addNumberPredicate(predicates, search, fromString, cb, path, field);
             }
