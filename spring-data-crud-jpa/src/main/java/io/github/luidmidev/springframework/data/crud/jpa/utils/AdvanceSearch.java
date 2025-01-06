@@ -174,7 +174,7 @@ public class AdvanceSearch {
 
             if (elementType.isEnum()) {
                 var enumValues = getEnumValue((Class<? extends Enum<?>>) elementType, search);
-                predicates.add(join.in(enumValues));
+                enumValues.ifPresent(value -> predicates.add(cb.equal(join, value)));
             }
         } else {
             var enumType = field.getType();
