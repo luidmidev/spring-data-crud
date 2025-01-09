@@ -3,6 +3,7 @@ package io.github.luidmidev.springframework.data.crud.core.controllers;
 
 import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.operations.WriteOperations;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Persistable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,26 +16,28 @@ import org.springframework.web.bind.annotation.*;
  * @param <ID> ID
  * @param <S>  Service
  */
-public interface WriteController<M extends Persistable<ID>, D, ID, S extends WriteOperations<M, D, ID>> extends ServiceProvider<S> {
+@RequiredArgsConstructor
+public abstract class WriteController<M extends Persistable<ID>, D, ID, S extends WriteOperations<M, D, ID>> implements ServiceProvider<S> {
 
+    private final S service;
 
     @PostMapping
-    default ResponseEntity<M> create(@RequestBody D dto) {
-        return ResponseEntity.ok(getService().create(dto));
+    public ResponseEntity<M> create(@RequestBody D dto) {
+        return ResponseEntity.ok(service.create(dto));
     }
 
     @PutMapping("/{id}")
-    default ResponseEntity<M> update(@PathVariable ID id, @RequestBody D dto) {
-        return ResponseEntity.ok(getService().update(id, dto));
+    public ResponseEntity<M> update(@PathVariable ID id, @RequestBody D dto) {
+        return ResponseEntity.ok(service.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    default ResponseEntity<String> delete(@PathVariable ID id) {
-        getService().delete(id);
+    public ResponseEntity<String> delete(@PathVariable ID id) {
+        service.delete(id);
         return ResponseEntity.ok(deletedMessage(id));
     }
 
-    default String deletedMessage(ID id) {
+    public String deletedMessage(ID id) {
         return "Deleted " + id;
     }
 }
