@@ -5,9 +5,8 @@ import io.github.luidmidev.springframework.data.crud.core.export.Exporter;
 import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.export.ExportConfig;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
-import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,13 +24,9 @@ public interface ExportController<ID, S extends ReadOperations<?, ID>> extends S
             @RequestParam List<String> fields,
             @RequestParam List<String> titles,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false, defaultValue = "20") int size,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false) String[] properties,
-            @RequestParam(required = false) Sort.Direction direction,
-            @RequestParam(required = false) MultiValueMap<String, String> params
+            @RequestParam(required = false) MultiValueMap<String, String> params,
+            Pageable pageable
     ) {
-        var pageable = CrudUtils.resolvePage(page, size, direction, properties);
         var config = ExportConfig.of(fields, titles);
         return getExporter().export(getService().page(search, pageable, params), config);
     }

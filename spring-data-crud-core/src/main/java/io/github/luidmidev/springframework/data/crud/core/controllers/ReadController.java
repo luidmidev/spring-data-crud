@@ -3,11 +3,9 @@ package io.github.luidmidev.springframework.data.crud.core.controllers;
 
 import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
-import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
@@ -26,13 +24,9 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
     @GetMapping
     default ResponseEntity<Page<M>> page(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false, defaultValue = "20") int size,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false) String[] properties,
-            @RequestParam(required = false) Sort.Direction direction,
-            @RequestParam(required = false) MultiValueMap<String, String> params
+            @RequestParam(required = false) MultiValueMap<String, String> params,
+            Pageable pageable
     ) {
-        var pageable = processPageParams(size, page, properties, direction, params);
         return ResponseEntity.ok(getService().page(search, pageable, params));
     }
 
@@ -54,10 +48,5 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
     @GetMapping("/exists")
     default ResponseEntity<Boolean> exists(@RequestParam ID id) {
         return ResponseEntity.ok(getService().exists(id));
-    }
-
-    static Pageable processPageParams(int size, int page, String[] properties, Sort.Direction direction, MultiValueMap<String, String> params) {
-        CrudUtils.cleanParams(params);
-        return CrudUtils.resolvePage(size, page, direction, properties);
     }
 }
