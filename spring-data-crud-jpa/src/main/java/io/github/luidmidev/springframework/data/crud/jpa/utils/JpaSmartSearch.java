@@ -78,7 +78,7 @@ public class JpaSmartSearch {
             log.debug("Searching page {} with search: {} and additions: {}", domainClass.getName(), search, additions);
         }
 
-        return createQueryExecutor(em, search, additions, domainClass, (cb, query, root) -> {
+        return createQueryExecutor(em, search, additions, domainClass, (CriteriaBuilder cb, CriteriaQuery<M> query, Root<M> root) -> {
 
             if (pageable.getSort().isSorted()) {
                 query.orderBy(resolveOrders(pageable.getSort(), cb, root));
@@ -174,7 +174,7 @@ public class JpaSmartSearch {
             }
 
             try {
-                addPredicatesFromField(predicates, search, path, cb, field);
+                addBasicPredicates(predicates, search, path, cb, field);
             } catch (IllegalArgumentException e) {
                 log.info("Field {} not found in {}", field.getName(), domainClass.getName());
             }
@@ -267,17 +267,18 @@ public class JpaSmartSearch {
         }
     }
 
-    private static void addPredicatesFromField(Collection<Predicate> predicates, String search, Path<?> path, CriteriaBuilder cb, Field field) {
+    private static void addBasicPredicates(Collection<Predicate> predicates, String search, Path<?> path, CriteriaBuilder cb, Field field) {
         var type = field.getType();
+        var attributeName = field.getName();
 
         if (String.class.isAssignableFrom(type)) {
-            var pathAttribute = path.<String>get(field.getName());
+            var pathAttribute = path.<String>get(attributeName);
             predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
             return;
         }
 
         if (UUID.class.isAssignableFrom(type)) {
-            var pathAttribute = path.<UUID>get(field.getName()).as(String.class);
+            var pathAttribute = path.<UUID>get(attributeName).as(String.class);
             predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
             return;
         }
@@ -285,30 +286,26 @@ public class JpaSmartSearch {
         var isNumber = Number.class.isAssignableFrom(type.isPrimitive() ? getWrapperType(type) : type);
         if (isNumber) {
             for (var fromString : FROM_STRINGS) {
-                addNumberPredicateGet(predicates, search, fromString, cb, path, field);
+                var numberType = fromString.type();
+                var converter = fromString.converter();
+                if (type.isAssignableFrom(numberType) && search.matches("\\d+")) {
+                    var number = path.get(attributeName);
+                    var converted = converter.apply(search);
+                    predicates.add(cb.equal(number, converted));
+                }
             }
             return;
         }
 
         var isBoolean = Boolean.class.isAssignableFrom(type) || boolean.class.isAssignableFrom(type);
         if (isBoolean && search.matches("true|false")) {
-            var pathAttribute = path.<Boolean>get(field.getName());
+            var pathAttribute = path.<Boolean>get(attributeName);
             predicates.add(cb.equal(pathAttribute, Boolean.parseBoolean(search)));
             return;
         }
 
         if (Year.class.isAssignableFrom(type) && search.matches("\\d{4}")) {
-            predicates.add(cb.equal(path.get(field.getName()), Year.parse(search)));
-        }
-    }
-
-
-    private static <T extends Number, M> void addNumberPredicateGet(Collection<Predicate> predicates, String search, FromString<T> fromString, CriteriaBuilder cb, Path<M> root, Field field) {
-        var type = fromString.type();
-        var converter = fromString.converter();
-        if (field.getType().isAssignableFrom(type) && search.matches("\\d+")) {
-            var path = root.<T>get(field.getName());
-            predicates.add(cb.equal(path, converter.apply(search)));
+            predicates.add(cb.equal(path.get(attributeName), Year.parse(search)));
         }
     }
 

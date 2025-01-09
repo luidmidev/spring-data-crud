@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 public abstract class CrudController<M extends Persistable<ID>, D, ID, S extends CrudOperations<M, D, ID>> extends ReadController<M, ID, S> {
 
-    public CrudController(S service) {
+    protected CrudController(S service) {
         super(service);
     }
 

@@ -3,8 +3,10 @@ package io.github.luidmidev.springframework.data.crud.core.controllers;
 
 import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
@@ -28,6 +30,7 @@ import java.util.List;
 public abstract class ReadController<M extends Persistable<ID>, ID, S extends ReadOperations<M, ID>> implements ServiceProvider<S> {
 
     protected final S service;
+
     private List<String> ignoreParams;
 
     @GetMapping

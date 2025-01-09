@@ -7,6 +7,7 @@ import io.github.luidmidev.springframework.data.crud.core.export.ExportConfig;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,15 +20,19 @@ public interface ExportController<ID, S extends ReadOperations<?, ID>> extends S
 
     Exporter getExporter();
 
+    List<String> getIgnoreParams();
+
     @GetMapping("/export")
     default ResponseEntity<ByteArrayResource> exportPage(
             @RequestParam List<String> fields,
             @RequestParam List<String> titles,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) MultiValueMap<String, String> params,
-            Pageable pageable
+            @PageableDefault Pageable pageable
     ) {
         var config = ExportConfig.of(fields, titles);
+        var ignoreParams = getIgnoreParams();
+        if (ignoreParams != null) ignoreParams.forEach(params::remove);
         return getExporter().export(getService().page(search, pageable, params), config);
     }
 
