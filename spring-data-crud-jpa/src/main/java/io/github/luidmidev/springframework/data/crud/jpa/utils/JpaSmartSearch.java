@@ -24,7 +24,7 @@ import java.util.function.Function;
  */
 @Slf4j
 @Component
-public class AdvanceSearch {
+public class JpaSmartSearch {
 
     /**
      * List of FromString to convert String to numeric types
@@ -153,12 +153,13 @@ public class AdvanceSearch {
             }
 
             if (field.isAnnotationPresent(Convert.class)) {
-                addPredicateFromConvertableField(search, path, cb, field, predicates);
+                addPredicateFromConvertableField(predicates, search, path, cb, field);
                 continue;
             }
 
             if (field.isAnnotationPresent(Embedded.class)) {
-                predicates.addAll(getSearchPredicates(search, path.get(field.getName()), cb, field.getType()));
+                var embedded = path.get(field.getName());
+                predicates.addAll(getSearchPredicates(search, embedded, cb, field.getType()));
                 continue;
             }
 
@@ -167,9 +168,13 @@ public class AdvanceSearch {
                 continue;
             }
 
+            if (field.isAnnotationPresent(ElementCollection.class) && path instanceof From<?, ?> from) {
+                addElementCollectionPredicates(predicates, search, from, cb, field);
+                continue;
+            }
+
             try {
-                var type = field.getType();
-                addPredicatesFromField(search, path, cb, field, type, predicates);
+                addPredicatesFromField(predicates, search, path, cb, field);
             } catch (IllegalArgumentException e) {
                 log.info("Field {} not found in {}", field.getName(), domainClass.getName());
             }
@@ -179,12 +184,40 @@ public class AdvanceSearch {
     }
 
     @SuppressWarnings("unchecked")
+    private static void addElementCollectionPredicates(Collection<Predicate> predicates, String search, From<?, ?> from, CriteriaBuilder cb, Field field) {
+        var elementType = getFirstGenericTypeClass(field);
+
+        if (elementType.isEnum()) {
+            var candidates = searchEnumCandidates((Class<? extends Enum<?>>) elementType, search);
+            if (candidates.isEmpty()) return;
+            var joined = from.join(field.getName());
+            predicates.add(joined.in(candidates));
+        }
+
+        if (elementType.isAnnotationPresent(Embeddable.class)) {
+            var joined = from.join(field.getName());
+            predicates.addAll(getSearchPredicates(search, joined, cb, elementType));
+            return;
+        }
+
+        if (String.class.isAssignableFrom(elementType)) {
+            var joined = from.<Object, String>join(field.getName());
+            predicates.add(cb.like(cb.lower(joined), "%" + search.toLowerCase() + "%"));
+            return;
+        }
+
+        if (UUID.class.isAssignableFrom(elementType)) {
+            var joined = from.<Object, UUID>join(field.getName()).as(String.class);
+            predicates.add(cb.like(cb.lower(joined), "%" + search.toLowerCase() + "%"));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     private static void addPredicateEnums(Collection<Predicate> predicates, String search, Path<?> path, Field field) {
         Expression<?> expression = null;
         Collection<Enum<?>> candidates = null;
         if (field.isAnnotationPresent(ElementCollection.class) && path instanceof From<?, ?> from) {
-            var genericType = (ParameterizedType) field.getGenericType();
-            var elementType = (Class<?>) genericType.getActualTypeArguments()[0]; // Obtenemos el tipo del elemento en la colección
+            var elementType = getFirstGenericTypeClass(field);
             if (elementType.isEnum()) {
                 expression = from.join(field.getName());
                 candidates = searchEnumCandidates((Class<? extends Enum<?>>) elementType, search);
@@ -209,15 +242,20 @@ public class AdvanceSearch {
                 set.add(constant);
                 continue;
             }
-            if (constant instanceof EnumSearchable searchable && searchable.matches(value)) {
+            if (constant instanceof JpaEnumCandidate searchable && searchable.isCandidate(value)) {
                 set.add(constant);
             }
         }
         return set;
     }
 
+    private static Class<?> getFirstGenericTypeClass(Field field) {
+        var genericType = (ParameterizedType) field.getGenericType();
+        return (Class<?>) genericType.getActualTypeArguments()[0];
+    }
+
     @SuppressWarnings("unchecked")
-    private static void addPredicateFromConvertableField(String search, Path<?> path, CriteriaBuilder cb, Field field, Collection<Predicate> predicates) {
+    private static void addPredicateFromConvertableField(Collection<Predicate> predicates, String search, Path<?> path, CriteriaBuilder cb, Field field) {
         var convert = field.getAnnotation(Convert.class);
         var conveter = convert.converter();
         if (conveter == null) return;
@@ -229,28 +267,34 @@ public class AdvanceSearch {
         }
     }
 
-    private static void addPredicatesFromField(String search, Path<?> path, CriteriaBuilder cb, Field field, Class<?> type, Collection<Predicate> predicates) {
+    private static void addPredicatesFromField(Collection<Predicate> predicates, String search, Path<?> path, CriteriaBuilder cb, Field field) {
+        var type = field.getType();
 
         if (String.class.isAssignableFrom(type)) {
             var pathAttribute = path.<String>get(field.getName());
             predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
+            return;
         }
 
         if (UUID.class.isAssignableFrom(type)) {
             var pathAttribute = path.<UUID>get(field.getName()).as(String.class);
             predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
+            return;
         }
 
         var isNumber = Number.class.isAssignableFrom(type.isPrimitive() ? getWrapperType(type) : type);
         if (isNumber) {
             for (var fromString : FROM_STRINGS) {
-                addNumberPredicate(predicates, search, fromString, cb, path, field);
+                addNumberPredicateGet(predicates, search, fromString, cb, path, field);
             }
+            return;
         }
 
-        if (Boolean.class.isAssignableFrom(type) && search.matches("true|false")) {
+        var isBoolean = Boolean.class.isAssignableFrom(type) || boolean.class.isAssignableFrom(type);
+        if (isBoolean && search.matches("true|false")) {
             var pathAttribute = path.<Boolean>get(field.getName());
             predicates.add(cb.equal(pathAttribute, Boolean.parseBoolean(search)));
+            return;
         }
 
         if (Year.class.isAssignableFrom(type) && search.matches("\\d{4}")) {
@@ -259,14 +303,13 @@ public class AdvanceSearch {
     }
 
 
-    private static <T extends Number, M> void addNumberPredicate(Collection<Predicate> predicates, String search, FromString<T> fromString, CriteriaBuilder cb, Path<M> root, Field field) {
+    private static <T extends Number, M> void addNumberPredicateGet(Collection<Predicate> predicates, String search, FromString<T> fromString, CriteriaBuilder cb, Path<M> root, Field field) {
         var type = fromString.type();
         var converter = fromString.converter();
         if (field.getType().isAssignableFrom(type) && search.matches("\\d+")) {
             var path = root.<T>get(field.getName());
             predicates.add(cb.equal(path, converter.apply(search)));
         }
-
     }
 
     private static <M, E> E createQueryExecutor(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> entityClass, InitQueryReturn<M, M, E> function) {

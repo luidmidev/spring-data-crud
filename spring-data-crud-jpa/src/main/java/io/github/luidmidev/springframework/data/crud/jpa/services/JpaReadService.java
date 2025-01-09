@@ -3,13 +3,12 @@ package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 import io.github.luidmidev.springframework.data.crud.core.services.ReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
-import io.github.luidmidev.springframework.data.crud.jpa.utils.AdvanceSearch;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSmartSearch;
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * CRUD Service for JPA
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @param <ID> ID
  * @param <R>  Repositorys
  */
-@Transactional
 public abstract class JpaReadService<M extends Persistable<ID>, ID, R extends JpaRepository<M, ID>> extends ReadService<M, ID, R> {
 
     protected final EntityManager entityManager;
@@ -30,10 +28,10 @@ public abstract class JpaReadService<M extends Persistable<ID>, ID, R extends Jp
 
     @Override
     protected Page<M> search(String search, Pageable pageable) {
-        return AdvanceSearch.search(entityManager, search, pageable, domainClass);
+        return JpaSmartSearch.search(entityManager, search, pageable, domainClass);
     }
 
     protected Page<M> search(String search, Pageable pageable, AdditionsSearch<M> additionsSearch) {
-        return AdvanceSearch.search(entityManager, search, pageable, additionsSearch, domainClass);
+        return JpaSmartSearch.search(entityManager, search, pageable, additionsSearch, domainClass);
     }
 }

@@ -3,7 +3,7 @@ package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
-import io.github.luidmidev.springframework.data.crud.jpa.utils.AdvanceSearch;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSmartSearch;
 import jakarta.persistence.EntityManager;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
@@ -43,11 +43,11 @@ public abstract class JpaCrudService<M extends Persistable<ID>, D, ID, R extends
 
     @Override
     protected Page<M> search(String search, Pageable pageable) {
-        return AdvanceSearch.search(entityManager, search, pageable, domainClass);
+        return JpaSmartSearch.search(entityManager, search, pageable, domainClass);
     }
 
     protected Page<M> search(String search, Pageable pageable, AdditionsSearch<M> additionsSearch) {
-        return AdvanceSearch.search(entityManager, search, pageable, additionsSearch, domainClass);
+        return JpaSmartSearch.search(entityManager, search, pageable, additionsSearch, domainClass);
     }
 
 }
