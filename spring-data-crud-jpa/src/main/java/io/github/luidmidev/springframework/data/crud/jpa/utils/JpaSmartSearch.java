@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.Year;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 /**
  * Utility class for advanced search in JPA
@@ -29,6 +30,10 @@ public class JpaSmartSearch {
     /**
      * List of FromString to convert String to numeric types
      */
+
+    private static final String UUID_REGEX = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
+    private static final Pattern UUID_PATTERN = Pattern.compile(UUID_REGEX);
+
     private static final List<FromString<? extends Number>> FROM_STRINGS = List.of(
             FromString.of(Integer.class, Integer::parseInt),
             FromString.of(Long.class, Long::parseLong),
@@ -267,20 +272,19 @@ public class JpaSmartSearch {
         }
     }
 
+    @SuppressWarnings("java:S3776")
     private static void addBasicPredicates(Collection<Predicate> predicates, String search, Path<?> path, CriteriaBuilder cb, Field field) {
         var type = field.getType();
         var attributeName = field.getName();
 
         if (String.class.isAssignableFrom(type)) {
-            var pathAttribute = path.<String>get(attributeName);
+            var pathAttribute = path.<String>get(field.getName());
             predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
-            return;
         }
 
-        if (UUID.class.isAssignableFrom(type)) {
-            var pathAttribute = path.<UUID>get(attributeName);
-            predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
-            return;
+        if (UUID.class.isAssignableFrom(type) && UUID_PATTERN.matcher(search).matches()) {
+            var pathAttribute = path.<UUID>get(field.getName());
+            predicates.add(cb.equal(pathAttribute, UUID.fromString(search)));
         }
 
         var isNumber = Number.class.isAssignableFrom(type.isPrimitive() ? getWrapperType(type) : type);
@@ -304,8 +308,11 @@ public class JpaSmartSearch {
             return;
         }
 
-        if (Year.class.isAssignableFrom(type) && search.matches("\\d{4}")) {
-            predicates.add(cb.equal(path.get(attributeName), Year.parse(search)));
+        if (Year.class.
+
+                isAssignableFrom(type) && search.matches("\\d{4}")) {
+            var pathAttribute = path.<Year>get(attributeName);
+            predicates.add(cb.equal(pathAttribute, Year.parse(search)));
         }
     }
 
