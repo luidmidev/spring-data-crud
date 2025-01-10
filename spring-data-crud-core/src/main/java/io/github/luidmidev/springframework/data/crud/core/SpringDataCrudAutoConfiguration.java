@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
@@ -14,6 +15,7 @@ import org.springframework.security.config.Customizer;
 import java.util.Optional;
 
 @AutoConfiguration
+@EnableConfigurationProperties(SpringDataWebProperties.class)
 public class SpringDataCrudAutoConfiguration {
 
     @Bean

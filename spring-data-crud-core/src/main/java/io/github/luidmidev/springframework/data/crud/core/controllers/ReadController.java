@@ -30,7 +30,6 @@ import java.util.List;
 public abstract class ReadController<M extends Persistable<ID>, ID, S extends ReadOperations<M, ID>> implements ServiceProvider<S> {
 
     protected final S service;
-
     private List<String> ignoreParams;
 
     @GetMapping
