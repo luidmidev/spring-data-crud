@@ -31,9 +31,8 @@ public class JpaSmartSearch {
      * List of FromString to convert String to numeric types
      */
 
-    private static final String UUID_REGEX = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
-    private static final Pattern UUID_PATTERN = Pattern.compile(UUID_REGEX);
-
+    private static final Pattern UUID_REGEX = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+    
     private static final List<FromString<? extends Number>> FROM_STRINGS = List.of(
             FromString.of(Integer.class, Integer::parseInt),
             FromString.of(Long.class, Long::parseLong),
@@ -139,7 +138,7 @@ public class JpaSmartSearch {
         var predicates = new ArrayList<>(getSearchPredicates(search, root, cb, domainClass));
 
         for (var joinColumn : joinColumns) {
-            var join = root.join(joinColumn);
+            var join = root.join(joinColumn, JoinType.LEFT);
             predicates.addAll(getSearchPredicates(search, join, cb, join.getJavaType()));
         }
 
@@ -195,25 +194,25 @@ public class JpaSmartSearch {
         if (elementType.isEnum()) {
             var candidates = searchEnumCandidates((Class<? extends Enum<?>>) elementType, search);
             if (candidates.isEmpty()) return;
-            var joined = from.join(field.getName());
+            var joined = from.join(field.getName(), JoinType.LEFT);
             predicates.add(joined.in(candidates));
         }
 
         if (elementType.isAnnotationPresent(Embeddable.class)) {
-            var joined = from.join(field.getName());
+            var joined = from.join(field.getName(), JoinType.LEFT);
             predicates.addAll(getSearchPredicates(search, joined, cb, elementType));
             return;
         }
 
         if (String.class.isAssignableFrom(elementType)) {
-            var joined = from.<Object, String>join(field.getName());
+            var joined = from.<Object, String>join(field.getName(), JoinType.LEFT);
             predicates.add(cb.like(cb.lower(joined), "%" + search.toLowerCase() + "%"));
             return;
         }
 
-        if (UUID.class.isAssignableFrom(elementType)) {
-            var joined = from.<Object, UUID>join(field.getName()).as(String.class);
-            predicates.add(cb.like(cb.lower(joined), "%" + search.toLowerCase() + "%"));
+        if (UUID.class.isAssignableFrom(elementType) && UUID_REGEX.matcher(search).matches()) {
+            var joined = from.<Object, UUID>join(field.getName(), JoinType.LEFT);
+            predicates.add(cb.equal(joined, UUID.fromString(search)));
         }
     }
 
@@ -282,7 +281,7 @@ public class JpaSmartSearch {
             predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
         }
 
-        if (UUID.class.isAssignableFrom(type) && UUID_PATTERN.matcher(search).matches()) {
+        if (UUID.class.isAssignableFrom(type) && UUID_REGEX.matcher(search).matches()) {
             var pathAttribute = path.<UUID>get(field.getName());
             predicates.add(cb.equal(pathAttribute, UUID.fromString(search)));
         }
