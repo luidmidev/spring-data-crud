@@ -278,7 +278,7 @@ public class JpaSmartSearch {
         }
 
         if (UUID.class.isAssignableFrom(type)) {
-            var pathAttribute = path.<UUID>get(attributeName).as(String.class);
+            var pathAttribute = path.<UUID>get(attributeName);
             predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
             return;
         }
