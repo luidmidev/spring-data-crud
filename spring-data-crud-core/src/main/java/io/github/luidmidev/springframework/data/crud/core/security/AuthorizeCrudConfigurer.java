@@ -102,6 +102,7 @@ public class AuthorizeCrudConfigurer {
         public AuthorizedCrud crudsWriteOnly(Class<? extends Crud> crud) {
             return crudEqualsAndOperationMatcher(crud, CrudOperation::isWriteOnly);
         }
+
         public AuthorizedCrud operationRead() {
             return operationMatcher(CrudOperation::isRead);
         }
@@ -206,6 +207,10 @@ public class AuthorizeCrudConfigurer {
 
         public AuthorizationManagerCrudMatcherRegistry hasAnyAuthority(String... authorities) {
             return access(withRoleHierarchy(AuthorityAuthorizationManager.hasAnyAuthority(authorities)));
+        }
+
+        public AuthorizationManagerCrudMatcherRegistry hasAnyAuthority(GrantedAuthority... authorities) {
+            return hasAnyAuthority(Arrays.stream(authorities).map(GrantedAuthority::getAuthority).toArray(String[]::new));
         }
 
         private AuthorityAuthorizationManager<CrudAuthorizationContext> withRoleHierarchy(AuthorityAuthorizationManager<CrudAuthorizationContext> manager) {
