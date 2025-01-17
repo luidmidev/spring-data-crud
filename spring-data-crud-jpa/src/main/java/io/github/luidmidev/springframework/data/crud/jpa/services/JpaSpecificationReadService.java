@@ -32,8 +32,7 @@ public interface JpaSpecificationReadService<M extends Persistable<ID>, ID, R ex
     @Override
     default Page<M> internalPage(Pageable pageable) {
         var spec = Specification.<M>where(null);
-        spec = processSpecification(spec);
-        return getRepository().findAll(spec, pageable);
+        return getRepository().findAll(processSpecification(spec), pageable);
     }
 
     @Override
@@ -43,36 +42,31 @@ public interface JpaSpecificationReadService<M extends Persistable<ID>, ID, R ex
 
     default Page<M> internalSearch(String search, Pageable pageable, AdditionsSearch<M> additionsSearch) {
         var spec = Specification.<M>where((root, query, cb) -> JpaSmartSearch.getPredicate(search, additionsSearch, cb, query, root, getEntityClass()));
-        spec = processSpecification(spec);
-        return getRepository().findAll(spec, pageable);
+        return getRepository().findAll(processSpecification(spec), pageable);
     }
 
     @Override
     default M internalFind(ID id) {
         var spec = Specification.<M>where((root, query, cb) -> cb.equal(root.get("id"), id));
-        spec = processSpecification(spec);
-        return getRepository().findOne(spec).orElseThrow(ApiError::notFound);
+        return getRepository().findOne(processSpecification(spec)).orElseThrow(ApiError::notFound);
     }
 
     @Override
     default List<M> internalFind(List<ID> ids) {
         var spec = Specification.<M>where((root, query, cb) -> root.get("id").in(ids));
-        spec = processSpecification(spec);
-        return getRepository().findAll(spec);
+        return getRepository().findAll(processSpecification(spec));
     }
 
     @Override
     default long internalCount() {
         var spec = Specification.<M>where(null);
-        spec = processSpecification(spec);
-        return getRepository().count(spec);
+        return getRepository().count(processSpecification(spec));
     }
 
     @Override
     default boolean internalExists(ID id) {
         var spec = Specification.<M>where((root, query, cb) -> cb.equal(root.get("id"), id));
-        spec = processSpecification(spec);
-        return getRepository().exists(spec);
+        return getRepository().exists(processSpecification(spec));
     }
 
 
