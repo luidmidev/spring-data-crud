@@ -32,7 +32,7 @@ public interface JpaSpecificationReadService<M extends Persistable<ID>, ID, R ex
     @Override
     default Page<M> internalPage(Pageable pageable) {
         var spec = Specification.<M>where(null);
-        combineSpecification(spec);
+        spec = processSpecification(spec);
         return getRepository().findAll(spec, pageable);
     }
 
@@ -43,35 +43,35 @@ public interface JpaSpecificationReadService<M extends Persistable<ID>, ID, R ex
 
     default Page<M> internalSearch(String search, Pageable pageable, AdditionsSearch<M> additionsSearch) {
         var spec = Specification.<M>where((root, query, cb) -> JpaSmartSearch.getPredicate(search, additionsSearch, cb, query, root, getEntityClass()));
-        combineSpecification(spec);
+        spec = processSpecification(spec);
         return getRepository().findAll(spec, pageable);
     }
 
     @Override
     default M internalFind(ID id) {
         var spec = Specification.<M>where((root, query, cb) -> cb.equal(root.get("id"), id));
-        combineSpecification(spec);
+        spec = processSpecification(spec);
         return getRepository().findOne(spec).orElseThrow(ApiError::notFound);
     }
 
     @Override
     default List<M> internalFind(List<ID> ids) {
         var spec = Specification.<M>where((root, query, cb) -> root.get("id").in(ids));
-        combineSpecification(spec);
+        spec = processSpecification(spec);
         return getRepository().findAll(spec);
     }
 
     @Override
     default long internalCount() {
         var spec = Specification.<M>where(null);
-        combineSpecification(spec);
+        spec = processSpecification(spec);
         return getRepository().count(spec);
     }
 
     @Override
     default boolean internalExists(ID id) {
         var spec = Specification.<M>where((root, query, cb) -> cb.equal(root.get("id"), id));
-        combineSpecification(spec);
+        spec = processSpecification(spec);
         return getRepository().exists(spec);
     }
 
