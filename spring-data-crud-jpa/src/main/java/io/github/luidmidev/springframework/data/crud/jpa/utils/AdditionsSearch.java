@@ -18,6 +18,8 @@ import java.util.List;
 @Getter(AccessLevel.PACKAGE)
 public class AdditionsSearch<M> {
 
+    private boolean hasInvoked = false;
+
     /**
      * Boolean operator to combine the original search with the additional search
      */
@@ -50,6 +52,10 @@ public class AdditionsSearch<M> {
      * @return this
      */
     public AdditionsSearch<M> specification(@NotNull Specification<M> specification) {
+        if (hasInvoked) {
+            throw new IllegalStateException("Specification id already defined for you");
+        }
+        this.hasInvoked = true;
         this.specification = specification;
         return this;
     }
@@ -61,8 +67,7 @@ public class AdditionsSearch<M> {
      */
     public AdditionsSearch<M> and(@NotNull Specification<M> specification) {
         this.operator = Predicate.BooleanOperator.AND;
-        this.specification = specification;
-        return this;
+        return specification(specification);
     }
 
     /**
@@ -71,9 +76,8 @@ public class AdditionsSearch<M> {
      * @return this
      */
     public AdditionsSearch<M> or(@NotNull Specification<M> specification) {
-        this.operator = Predicate.BooleanOperator.OR;
-        this.specification = specification;
-        return this;
+        this.operator = Predicate.BooleanOperator.AND;
+        return specification(specification);
     }
 
     /**

@@ -5,12 +5,11 @@ import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSmartSearch;
 import jakarta.persistence.EntityManager;
-import org.jetbrains.annotations.NotNull;
+import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * CRUD Service for JPA
@@ -23,31 +22,27 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class JpaCrudService<M extends Persistable<ID>, D, ID, R extends JpaRepository<M, ID>> extends CrudService<M, D, ID, R> {
 
     protected final EntityManager entityManager;
+    protected final Class<M> entityClass;
 
-    protected JpaCrudService(R repository, Class<M> domainClass, EntityManager entityManager) {
-        super(repository, domainClass);
+    protected JpaCrudService(R repository, EntityManager entityManager, Class<M> entityClass) {
+        super(repository);
         this.entityManager = entityManager;
+        this.entityClass = entityClass;
     }
 
     @Override
-    @Transactional
-    public M create(@NotNull D dto) {
-        return super.create(dto);
+    @SneakyThrows
+    protected M newEntity() {
+        return entityClass.getConstructor().newInstance();
     }
+
 
     @Override
-    @Transactional
-    public M update(@NotNull ID id, @NotNull D dto) {
-        return super.update(id, dto);
+    protected Page<M> internalSearch(String search, Pageable pageable) {
+        return JpaSmartSearch.search(entityManager, search, pageable, entityClass);
     }
 
-    @Override
-    protected Page<M> search(String search, Pageable pageable) {
-        return JpaSmartSearch.search(entityManager, search, pageable, domainClass);
+    protected Page<M> internalSearch(String search, Pageable pageable, AdditionsSearch<M> additionsSearch) {
+        return JpaSmartSearch.search(entityManager, search, pageable, additionsSearch, entityClass);
     }
-
-    protected Page<M> search(String search, Pageable pageable, AdditionsSearch<M> additionsSearch) {
-        return JpaSmartSearch.search(entityManager, search, pageable, additionsSearch, domainClass);
-    }
-
 }

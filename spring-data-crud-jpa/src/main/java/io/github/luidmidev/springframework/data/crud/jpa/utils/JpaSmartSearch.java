@@ -31,8 +31,8 @@ public class JpaSmartSearch {
      * List of FromString to convert String to numeric types
      */
 
-    private static final Pattern UUID_REGEX = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
-    
+    private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+
     private static final List<FromString<? extends Number>> FROM_STRINGS = List.of(
             FromString.of(Integer.class, Integer::parseInt),
             FromString.of(Long.class, Long::parseLong),
@@ -82,7 +82,7 @@ public class JpaSmartSearch {
             log.debug("Searching page {} with search: {} and additions: {}", domainClass.getName(), search, additions);
         }
 
-        return createQueryExecutor(em, search, additions, domainClass, (CriteriaBuilder cb, CriteriaQuery<M> query, Root<M> root) -> {
+        return queryExecutor(em, search, additions, domainClass, (CriteriaBuilder cb, CriteriaQuery<M> query, Root<M> root) -> {
 
             if (pageable.getSort().isSorted()) {
                 query.orderBy(resolveOrders(pageable.getSort(), cb, root));
@@ -116,7 +116,7 @@ public class JpaSmartSearch {
             log.debug("Searching {} with search: {} and additions: {}", domainClass.getName(), search, additions);
         }
 
-        return createQueryExecutor(em, search, additions, domainClass, (cb, query, root) -> {
+        return queryExecutor(em, search, additions, domainClass, (cb, query, root) -> {
 
             if (sort.isSorted()) {
                 query.orderBy(resolveOrders(sort, cb, root));
@@ -127,7 +127,7 @@ public class JpaSmartSearch {
     }
 
     public static <M> long countBySearch(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> domainClass) {
-        return createQueryExecutor(em, search, additions, Long.class, domainClass, (cb, query, root) -> {
+        return queryExecutor(em, search, additions, Long.class, domainClass, (cb, query, root) -> {
             query.select(cb.count(root));
             return em.createQuery(query).getSingleResult();
         });
@@ -210,7 +210,7 @@ public class JpaSmartSearch {
             return;
         }
 
-        if (UUID.class.isAssignableFrom(elementType) && UUID_REGEX.matcher(search).matches()) {
+        if (UUID.class.isAssignableFrom(elementType) && UUID_PATTERN.matcher(search).matches()) {
             var joined = from.<Object, UUID>join(field.getName(), JoinType.LEFT);
             predicates.add(cb.equal(joined, UUID.fromString(search)));
         }
@@ -281,7 +281,7 @@ public class JpaSmartSearch {
             predicates.add(cb.like(cb.lower(pathAttribute), "%" + search.toLowerCase() + "%"));
         }
 
-        if (UUID.class.isAssignableFrom(type) && UUID_REGEX.matcher(search).matches()) {
+        if (UUID.class.isAssignableFrom(type) && UUID_PATTERN.matcher(search).matches()) {
             var pathAttribute = path.<UUID>get(field.getName());
             predicates.add(cb.equal(pathAttribute, UUID.fromString(search)));
         }
@@ -307,30 +307,40 @@ public class JpaSmartSearch {
             return;
         }
 
-        if (Year.class.
-
-                isAssignableFrom(type) && search.matches("\\d{4}")) {
+        if (Year.class.isAssignableFrom(type) && search.matches("\\d{4}")) {
             var pathAttribute = path.<Year>get(attributeName);
             predicates.add(cb.equal(pathAttribute, Year.parse(search)));
         }
     }
 
-    private static <M, E> E createQueryExecutor(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> entityClass, InitQueryReturn<M, M, E> function) {
-        return createQueryExecutor(em, search, additions, entityClass, entityClass, function);
+    private static <M, E> E queryExecutor(
+            EntityManager em,
+            String search,
+            AdditionsSearch<M> additions,
+            Class<M> entityClass,
+            Executor<M, M, E> executor
+    ) {
+        return queryExecutor(em, search, additions, entityClass, entityClass, executor);
     }
 
-    private static <Q, M, E> E createQueryExecutor(EntityManager em, String search, AdditionsSearch<M> additions, Class<Q> resultClass, Class<M> entityClass, InitQueryReturn<Q, M, E> function) {
-        var cb = em.getCriteriaBuilder();
-        var query = cb.createQuery(resultClass);
+    private static <Q, M, E> E queryExecutor(
+            EntityManager em,
+            String search,
+            AdditionsSearch<M> additions,
+            Class<Q> resultClass,
+            Class<M> entityClass,
+            Executor<Q, M, E> executor
+    ) {
+
+        var criteriaBuilder = em.getCriteriaBuilder();
+        var query = criteriaBuilder.createQuery(resultClass);
         var root = query.from(entityClass);
 
-        var predicate = getPredicatesSearchPredicate(search, additions, cb, query, root, entityClass);
+        var predicate = getPredicate(search, additions, criteriaBuilder, query, root, entityClass);
 
         query.where(predicate);
-
-        return function.apply(cb, query, root);
+        return executor.apply(criteriaBuilder, query, root);
     }
-
 
     private static List<Order> resolveOrders(Sort sort, CriteriaBuilder cb, Root<?> root) {
         var orders = new ArrayList<Order>();
@@ -344,14 +354,31 @@ public class JpaSmartSearch {
     }
 
 
-    private static <M> Predicate getPredicatesSearchPredicate(String search, AdditionsSearch<M> additions, CriteriaBuilder cb, CriteriaQuery<?> query, Root<M> root, Class<M> domainClass) {
+    public static <M> Predicate getPredicate(
+            String search,
+            CriteriaBuilder cb,
+            CriteriaQuery<?> query,
+            Root<M> root,
+            Class<M> entityClass
+    ) {
+        return getPredicate(search, null, cb, query, root, entityClass);
+    }
+
+    public static <M> Predicate getPredicate(
+            String search,
+            AdditionsSearch<M> additions,
+            CriteriaBuilder cb,
+            CriteriaQuery<?> query,
+            Root<M> root,
+            Class<M> entityClass
+    ) {
 
         var isNullOrEmpty = StringUtils.isEmpty(search);
 
         if (isNullOrEmpty) {
             if (additions == null) return cb.conjunction();
         } else {
-            if (additions == null) return searchInAllColumns(search, root, cb, domainClass);
+            if (additions == null) return searchInAllColumns(search, root, cb, entityClass);
         }
 
         var predicate = additions.getSpecification().toPredicate(root, query, cb);
@@ -360,7 +387,7 @@ public class JpaSmartSearch {
             return predicate == null ? cb.conjunction() : predicate;
         }
 
-        var predicates = searchInAllColumns(search, root, cb, domainClass, additions.getJoins().toArray(String[]::new));
+        var predicates = searchInAllColumns(search, root, cb, entityClass, additions.getJoins().toArray(String[]::new));
 
         if (predicate == null) return predicates;
 
@@ -384,7 +411,7 @@ public class JpaSmartSearch {
     }
 
     @FunctionalInterface
-    private interface InitQueryReturn<Q, M, E> {
+    private interface Executor<Q, M, E> {
         E apply(CriteriaBuilder criteriaBuilder, CriteriaQuery<Q> criteriaQuery, Root<M> root);
     }
 

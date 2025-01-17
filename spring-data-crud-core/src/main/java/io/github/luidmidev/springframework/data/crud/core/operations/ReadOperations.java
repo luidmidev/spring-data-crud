@@ -17,7 +17,7 @@ import java.util.List;
 public non-sealed interface ReadOperations<M, ID> extends Crud {
 
     @PreAuthorize("@authorizationCrudManager.canAccess(this, 'PAGE')")
-    Page<M> page(String search, Pageable pageable, MultiValueMap<String, String> params);
+    Page<M> page(String search, Pageable pageable, MultiValueMap<String, String> filters);
 
     @PreAuthorize("@authorizationCrudManager.canAccess(this, 'FIND')")
     M find(ID id);

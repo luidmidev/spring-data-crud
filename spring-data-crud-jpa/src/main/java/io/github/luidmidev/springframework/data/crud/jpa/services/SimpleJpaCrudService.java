@@ -18,7 +18,8 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public abstract class SimpleJpaCrudService<M extends Persistable<ID>, D, ID> extends JpaCrudService<M, D, ID, SimpleJpaRepository<M, ID>> {
 
-    protected SimpleJpaCrudService(Class<M> domainClass, EntityManager entityManager) {
-        super(new SimpleJpaRepository<>(domainClass, entityManager), domainClass, entityManager);
+
+    protected SimpleJpaCrudService(EntityManager entityManager, Class<M> entityClass) {
+        super(new SimpleJpaRepository<>(entityClass, entityManager), entityManager, entityClass);
     }
 }

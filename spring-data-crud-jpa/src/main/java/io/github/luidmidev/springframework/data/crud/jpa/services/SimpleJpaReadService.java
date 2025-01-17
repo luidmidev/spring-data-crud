@@ -17,7 +17,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public abstract class SimpleJpaReadService<M extends Persistable<ID>, ID> extends JpaReadService<M, ID, SimpleJpaRepository<M, ID>> {
 
-    protected SimpleJpaReadService(Class<M> domainClass, EntityManager entityManager) {
-        super(new SimpleJpaRepository<>(domainClass, entityManager), domainClass, entityManager);
+    protected SimpleJpaReadService(Class<M> entityClass, EntityManager entityManager) {
+        super(new SimpleJpaRepository<>(entityClass, entityManager), entityManager, entityClass);
     }
 }
