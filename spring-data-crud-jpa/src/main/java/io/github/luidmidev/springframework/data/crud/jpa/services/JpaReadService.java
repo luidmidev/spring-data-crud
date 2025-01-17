@@ -1,7 +1,9 @@
 package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 
+import io.github.luidmidev.springframework.data.crud.core.EntityClassProvider;
 import io.github.luidmidev.springframework.data.crud.core.services.ReadService;
+import io.github.luidmidev.springframework.data.crud.jpa.EntityManagerProvider;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSmartSearch;
 import jakarta.persistence.EntityManager;
@@ -17,23 +19,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @param <ID> ID
  * @param <R>  Repositorys
  */
-public abstract class JpaReadService<M extends Persistable<ID>, ID, R extends JpaRepository<M, ID>> extends ReadService<M, ID, R> {
-
-    protected final EntityManager entityManager;
-    protected final Class<M> entityClass;
-
-    protected JpaReadService(R repository, EntityManager entityManager, Class<M> entityClass) {
-        super(repository);
-        this.entityManager = entityManager;
-        this.entityClass = entityClass;
-    }
+public interface JpaReadService<M extends Persistable<ID>, ID, R extends JpaRepository<M, ID>> extends
+        ReadService<M, ID, R>,
+        EntityClassProvider<M>,
+        EntityManagerProvider {
 
     @Override
-    protected Page<M> internalSearch(String search, Pageable pageable) {
-        return JpaSmartSearch.search(entityManager, search, pageable, entityClass);
+    default Page<M> internalSearch(String search, Pageable pageable) {
+        return JpaSmartSearch.search(getEntityManager(), search, pageable, getEntityClass());
     }
 
-    protected Page<M> internalSearch(String search, Pageable pageable, AdditionsSearch<M> additionsSearch) {
-        return JpaSmartSearch.search(entityManager, search, pageable, additionsSearch, entityClass);
+    default Page<M> internalSearch(String search, Pageable pageable, AdditionsSearch<M> additionsSearch) {
+        return JpaSmartSearch.search(getEntityManager(), search, pageable, additionsSearch, getEntityClass());
     }
 }

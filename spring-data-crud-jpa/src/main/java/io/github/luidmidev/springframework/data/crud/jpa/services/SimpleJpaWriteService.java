@@ -1,6 +1,7 @@
 package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 
+import io.github.luidmidev.springframework.data.crud.core.services.hooks.WriteHooks;
 import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import org.springframework.data.domain.Persistable;
@@ -18,13 +19,14 @@ import org.springframework.validation.annotation.Validated;
 @Transactional
 @Validated
 @Getter
-public abstract class SimpleJpaCrudService<M extends Persistable<ID>, D, ID> implements JpaCrudService<M, D, ID, SimpleJpaRepository<M, ID>> {
+public abstract class SimpleJpaWriteService<M extends Persistable<ID>, D, ID> implements
+        JpaWriteService<M, D, ID, SimpleJpaRepository<M, ID>> {
 
     protected final Class<M> entityClass;
     protected final EntityManager entityManager;
     protected final SimpleJpaRepository<M, ID> repository;
 
-    protected SimpleJpaCrudService(Class<M> entityClass, EntityManager entityManager) {
+    protected SimpleJpaWriteService(Class<M> entityClass, EntityManager entityManager) {
         this.entityClass = entityClass;
         this.entityManager = entityManager;
         this.repository = new SimpleJpaRepository<>(entityClass, entityManager);

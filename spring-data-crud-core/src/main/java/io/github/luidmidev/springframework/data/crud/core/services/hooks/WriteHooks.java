@@ -2,14 +2,14 @@ package io.github.luidmidev.springframework.data.crud.core.services.hooks;
 
 import org.springframework.data.domain.Persistable;
 
-public interface CrudServiceHooks<M extends Persistable<ID>, ID, D> extends ReadServiceHooks<M, ID> {
+public interface WriteHooks<M extends Persistable<ID>, D, ID> {
 
-    CrudServiceHooks<?, ?, ?> DEFAULT = new CrudServiceHooks<>() {
+    WriteHooks<?, ?, ?> DEFAULT = new WriteHooks<>() {
     };
 
     @SuppressWarnings("unchecked")
-    static <M extends Persistable<ID>, ID, D> CrudServiceHooks<M, ID, D> getDefault() {
-        return (CrudServiceHooks<M, ID, D>) DEFAULT;
+    static <M extends Persistable<ID>, D, ID> WriteHooks<M, D, ID> getDefault() {
+        return (WriteHooks<M, D, ID>) DEFAULT;
     }
 
     default void onBeforeCreate(D dto, M model) {

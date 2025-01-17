@@ -3,20 +3,17 @@ package io.github.luidmidev.springframework.data.crud.core.operations;
 
 import jakarta.validation.Valid;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Persistable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.annotation.Validated;
 
 /**
- * CRUD Service
+ * Crud Operations
  *
  * @param <M>  Model
- * @param <D>  DTO
+ * @param <D> DTO
  * @param <ID> ID
  */
-@Validated
-public non-sealed interface WriteOperations<M, D, ID> extends Crud {
-
-
+public non-sealed interface WriteOperations<M extends Persistable<ID>, D, ID> extends Crud {
     @PreAuthorize("@authorizationCrudManager.canAccess(this, 'CREATE')")
     M create(@Valid @NotNull D dto);
 
@@ -25,5 +22,4 @@ public non-sealed interface WriteOperations<M, D, ID> extends Crud {
 
     @PreAuthorize("@authorizationCrudManager.canAccess(this, 'DELETE')")
     void delete(ID id);
-
 }

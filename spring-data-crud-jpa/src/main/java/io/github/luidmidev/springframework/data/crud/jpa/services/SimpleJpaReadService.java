@@ -2,6 +2,7 @@ package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 
 import jakarta.persistence.EntityManager;
+import lombok.Getter;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +16,17 @@ import org.springframework.validation.annotation.Validated;
  */
 @Transactional
 @Validated
-public abstract class SimpleJpaReadService<M extends Persistable<ID>, ID> extends JpaReadService<M, ID, SimpleJpaRepository<M, ID>> {
+@Getter
+public abstract class SimpleJpaReadService<M extends Persistable<ID>, ID> implements JpaReadService<M, ID, SimpleJpaRepository<M, ID>> {
+
+    protected final Class<M> entityClass;
+    protected final EntityManager entityManager;
+    protected final SimpleJpaRepository<M, ID> repository;
 
     protected SimpleJpaReadService(Class<M> entityClass, EntityManager entityManager) {
-        super(new SimpleJpaRepository<>(entityClass, entityManager), entityManager, entityClass);
+        this.entityClass = entityClass;
+        this.entityManager = entityManager;
+        this.repository = new SimpleJpaRepository<>(entityClass, entityManager);
     }
+
 }

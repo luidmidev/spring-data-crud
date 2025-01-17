@@ -11,5 +11,4 @@ import org.springframework.data.domain.Persistable;
  * @param <ID> ID
  */
 public non-sealed interface CrudOperations<M extends Persistable<ID>, D, ID> extends ReadOperations<M, ID>, WriteOperations<M, D, ID>, Crud {
-
 }

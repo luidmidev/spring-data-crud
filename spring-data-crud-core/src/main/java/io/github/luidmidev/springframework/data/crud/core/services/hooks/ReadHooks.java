@@ -3,14 +3,14 @@ package io.github.luidmidev.springframework.data.crud.core.services.hooks;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Persistable;
 
-public interface ReadServiceHooks<M extends Persistable<ID>, ID> {
+public interface ReadHooks<M extends Persistable<ID>, ID> {
 
-    ReadServiceHooks<?, ?> DEFAULT = new ReadServiceHooks<>() {
+    ReadHooks<?, ?> DEFAULT = new ReadHooks<>() {
     };
 
     @SuppressWarnings("unchecked")
-    static <M extends Persistable<ID>, ID> ReadServiceHooks<M, ID> getDefault() {
-        return (ReadServiceHooks<M, ID>) DEFAULT;
+    static <M extends Persistable<ID>, ID> ReadHooks<M, ID> getDefault() {
+        return (ReadHooks<M, ID>) DEFAULT;
     }
 
     default void onFind(M entity) {

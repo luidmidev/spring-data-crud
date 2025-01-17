@@ -1,8 +1,8 @@
 package io.github.luidmidev.springframework.data.crud.core.services;
 
 
+import io.github.luidmidev.springframework.data.crud.core.RepositoryProvider;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
@@ -20,33 +20,32 @@ import java.util.List;
  * @param <R>  Repositorys
  */
 @Validated
-@RequiredArgsConstructor
-public abstract class ReadService<M extends Persistable<ID>, ID, R extends ListCrudRepository<M, ID> & PagingAndSortingRepository<M, ID>> extends BaseReadService<M, ID> {
-
-    protected final R repository;
+public interface ReadService<M extends Persistable<ID>, ID, R extends ListCrudRepository<M, ID> & PagingAndSortingRepository<M, ID>> extends
+        HooksReadService<M, ID>,
+        RepositoryProvider<R> {
 
     @Override
-    protected Page<M> internalPage(Pageable pageable) {
-        return repository.findAll(pageable);
+    default Page<M> internalPage(Pageable pageable) {
+        return getRepository().findAll(pageable);
     }
 
     @Override
-    protected M internalFind(ID id) {
-        return repository.findById(id).orElseThrow(ApiError::notFound);
+    default M internalFind(ID id) {
+        return getRepository().findById(id).orElseThrow(ApiError::notFound);
     }
 
     @Override
-    protected List<M> internalFind(List<ID> ids) {
-        return repository.findAllById(ids);
+    default List<M> internalFind(List<ID> ids) {
+        return getRepository().findAllById(ids);
     }
 
     @Override
-    protected long internalCount() {
-        return repository.count();
+    default long internalCount() {
+        return getRepository().count();
     }
 
     @Override
-    protected boolean internalExists(ID id) {
-        return repository.existsById(id);
+    default boolean internalExists(ID id) {
+        return getRepository().existsById(id);
     }
 }
