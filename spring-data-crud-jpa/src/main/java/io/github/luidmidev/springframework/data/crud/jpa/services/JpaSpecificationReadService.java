@@ -69,5 +69,4 @@ public interface JpaSpecificationReadService<M extends Persistable<ID>, ID, R ex
         return getRepository().exists(processSpecification(spec));
     }
 
-
 }
