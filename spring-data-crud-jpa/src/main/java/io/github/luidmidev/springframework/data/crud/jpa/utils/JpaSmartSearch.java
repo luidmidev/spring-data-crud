@@ -7,6 +7,7 @@ import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -90,11 +91,7 @@ public class JpaSmartSearch {
 
             if (pageable.isUnpaged()) {
                 var results = em.createQuery(query).getResultList();
-                return PageableExecutionUtils.getPage(
-                        results,
-                        pageable,
-                        results::size
-                );
+                return new PageImpl<>(results);
             }
 
             var results = em
@@ -150,7 +147,7 @@ public class JpaSmartSearch {
 
         var predicates = new ArrayList<Predicate>();
 
-        for (var field : domainClass.getDeclaredFields()) {
+        for (var field : getAllFields(domainClass)) {
 
             if (field.isAnnotationPresent(Transient.class)) {
                 continue;
@@ -395,6 +392,18 @@ public class JpaSmartSearch {
             case AND -> cb.and(predicates, predicate);
             case OR -> cb.or(predicates, predicate);
         };
+    }
+
+    public static List<Field> getAllFields(Class<?> clazz) {
+        // Obtiene campos de la clase actual
+        var fields = new ArrayList<>(Arrays.asList(clazz.getDeclaredFields()));
+
+        // Obtiene campos de la clase padre recursivamente
+        if (clazz.getSuperclass() != null) {
+            fields.addAll(getAllFields(clazz.getSuperclass()));
+        }
+
+        return fields;
     }
 
     private static boolean isStringDatabaseValue(Class<? extends AttributeConverter<?, ?>> converter) {
