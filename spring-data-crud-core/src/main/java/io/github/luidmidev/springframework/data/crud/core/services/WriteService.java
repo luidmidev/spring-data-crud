@@ -1,7 +1,7 @@
 package io.github.luidmidev.springframework.data.crud.core.services;
 
 
-import io.github.luidmidev.springframework.data.crud.core.EntityClassProvider;
+import io.github.luidmidev.springframework.data.crud.core.ModelClassProvider;
 import io.github.luidmidev.springframework.data.crud.core.RepositoryProvider;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Persistable;
@@ -20,7 +20,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public interface WriteService<M extends Persistable<ID>, D, ID, R extends ListCrudRepository<M, ID> & PagingAndSortingRepository<M, ID>> extends
         HooksWriteService<M, D, ID>,
-        EntityClassProvider<M>,
+        ModelClassProvider<M>,
         RepositoryProvider<R> {
 
     @Override

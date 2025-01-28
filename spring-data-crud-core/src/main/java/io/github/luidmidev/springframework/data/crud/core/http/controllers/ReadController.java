@@ -1,13 +1,9 @@
-package io.github.luidmidev.springframework.data.crud.core.controllers;
+package io.github.luidmidev.springframework.data.crud.core.http.controllers;
 
 
 import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
@@ -32,12 +28,12 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
     @GetMapping
     default ResponseEntity<Page<M>> page(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) MultiValueMap<String, String> params,
+            @RequestParam(required = false) MultiValueMap<String, String> filters,
             Pageable pageable
     ) {
         var ignoreParams = SpringDataCrudAutoConfiguration.getIgnoreParams();
-        if (ignoreParams != null) ignoreParams.forEach(params::remove);
-        return ResponseEntity.ok(getService().page(search, pageable, params));
+        if (ignoreParams != null) ignoreParams.forEach(filters::remove);
+        return ResponseEntity.ok(getService().page(search, pageable, filters));
     }
 
     @GetMapping("/{id}")

@@ -27,8 +27,8 @@ public interface HooksReadService<M extends Persistable<ID>, ID> extends ReadOpe
     }
 
     @Override
-    default Page<M> page(String search, Pageable pageable, MultiValueMap<String, String> params) {
-        return doPage(search, pageable, params);
+    default Page<M> page(String search, Pageable pageable, MultiValueMap<String, String> filters) {
+        return doPage(search, pageable, filters);
     }
 
     @Override

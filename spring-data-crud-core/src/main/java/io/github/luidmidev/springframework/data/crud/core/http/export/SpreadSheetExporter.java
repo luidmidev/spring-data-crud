@@ -1,4 +1,4 @@
-package io.github.luidmidev.springframework.data.crud.core.export;
+package io.github.luidmidev.springframework.data.crud.core.http.export;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;

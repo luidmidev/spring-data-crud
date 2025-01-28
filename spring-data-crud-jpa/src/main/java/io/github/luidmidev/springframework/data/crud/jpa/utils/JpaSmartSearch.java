@@ -246,7 +246,7 @@ public class JpaSmartSearch {
                 set.add(constant);
                 continue;
             }
-            if (constant instanceof JpaEnumCandidate searchable && searchable.isCandidate(value)) {
+            if (constant instanceof JpaEnumCandidate enumCandidate && enumCandidate.isCandidate(value)) {
                 set.add(constant);
             }
         }

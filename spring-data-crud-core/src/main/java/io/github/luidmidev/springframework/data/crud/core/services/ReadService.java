@@ -1,8 +1,9 @@
 package io.github.luidmidev.springframework.data.crud.core.services;
 
 
+import io.github.luidmidev.springframework.data.crud.core.ModelClassProvider;
 import io.github.luidmidev.springframework.data.crud.core.RepositoryProvider;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundModelException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
@@ -22,6 +23,7 @@ import java.util.List;
 @Validated
 public interface ReadService<M extends Persistable<ID>, ID, R extends ListCrudRepository<M, ID> & PagingAndSortingRepository<M, ID>> extends
         HooksReadService<M, ID>,
+        ModelClassProvider<M>,
         RepositoryProvider<R> {
 
     @Override
@@ -31,7 +33,7 @@ public interface ReadService<M extends Persistable<ID>, ID, R extends ListCrudRe
 
     @Override
     default M internalFind(ID id) {
-        return getRepository().findById(id).orElseThrow(ApiError::notFound);
+        return getRepository().findById(id).orElseThrow(() -> new NotFoundModelException(getEntityClass(), id));
     }
 
     @Override

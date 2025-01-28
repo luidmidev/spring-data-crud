@@ -1,4 +1,4 @@
-package io.github.luidmidev.springframework.data.crud.core.controllers;
+package io.github.luidmidev.springframework.data.crud.core.http.controllers;
 
 import io.github.luidmidev.springframework.data.crud.core.operations.CrudOperations;
 import org.springframework.data.domain.Persistable;

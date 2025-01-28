@@ -1,7 +1,7 @@
 package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 
-import io.github.luidmidev.springframework.data.crud.core.EntityClassProvider;
+import io.github.luidmidev.springframework.data.crud.core.ModelClassProvider;
 import io.github.luidmidev.springframework.data.crud.core.RepositoryProvider;
 import io.github.luidmidev.springframework.data.crud.core.services.HooksReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.SpecificationCombiner;
@@ -26,7 +26,7 @@ import java.util.List;
 public interface JpaSpecificationReadService<M extends Persistable<ID>, ID, R extends JpaSpecificationExecutor<M>> extends
         HooksReadService<M, ID>,
         RepositoryProvider<R>,
-        EntityClassProvider<M>,
+        ModelClassProvider<M>,
         SpecificationCombiner<M> {
 
     @Override

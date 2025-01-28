@@ -1,9 +1,9 @@
-package io.github.luidmidev.springframework.data.crud.core.controllers;
+package io.github.luidmidev.springframework.data.crud.core.http.controllers;
 
 
-import io.github.luidmidev.springframework.data.crud.core.export.Exporter;
+import io.github.luidmidev.springframework.data.crud.core.http.export.Exporter;
 import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
-import io.github.luidmidev.springframework.data.crud.core.export.ExportConfig;
+import io.github.luidmidev.springframework.data.crud.core.http.export.ExportConfig;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Pageable;
@@ -27,13 +27,13 @@ public interface ExportController<ID, S extends ReadOperations<?, ID>> extends S
             @RequestParam List<String> fields,
             @RequestParam List<String> titles,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) MultiValueMap<String, String> params,
+            @RequestParam(required = false) MultiValueMap<String, String> filters,
             @PageableDefault Pageable pageable
     ) {
         var config = ExportConfig.of(fields, titles);
         var ignoreParams = getIgnoreParams();
-        if (ignoreParams != null) ignoreParams.forEach(params::remove);
-        return getExporter().export(getService().page(search, pageable, params), config);
+        if (ignoreParams != null) ignoreParams.forEach(filters::remove);
+        return getExporter().export(getService().page(search, pageable, filters), config);
     }
 
     @GetMapping("/export/{id}")

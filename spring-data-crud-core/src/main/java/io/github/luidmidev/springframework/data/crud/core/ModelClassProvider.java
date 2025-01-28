@@ -1,7 +1,5 @@
 package io.github.luidmidev.springframework.data.crud.core;
 
-public interface EntityClassProvider<M> {
-
+public interface ModelClassProvider<M> {
     Class<M> getEntityClass();
-
 }

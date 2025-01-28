@@ -1,4 +1,4 @@
-package io.github.luidmidev.springframework.data.crud.core.export;
+package io.github.luidmidev.springframework.data.crud.core.http.export;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
