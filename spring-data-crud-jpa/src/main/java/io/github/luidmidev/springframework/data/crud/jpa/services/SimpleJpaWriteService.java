@@ -1,7 +1,6 @@
 package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 
-import io.github.luidmidev.springframework.data.crud.core.services.hooks.WriteHooks;
 import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import org.springframework.data.domain.Persistable;

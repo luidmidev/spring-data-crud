@@ -1,10 +1,10 @@
 package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 
-import io.github.luidmidev.springframework.data.crud.core.ModelClassProvider;
+import io.github.luidmidev.springframework.data.crud.core.EntityClassProvider;
 import io.github.luidmidev.springframework.data.crud.core.RepositoryProvider;
-import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundModelException;
-import io.github.luidmidev.springframework.data.crud.core.services.HooksReadService;
+import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;
+import io.github.luidmidev.springframework.data.crud.core.services.ReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.SpecificationCombiner;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSmartSearch;
@@ -24,9 +24,9 @@ import java.util.List;
  * @param <R>  Repositorys
  */
 public interface JpaSpecificationReadService<M extends Persistable<ID>, ID, R extends JpaSpecificationExecutor<M>> extends
-        HooksReadService<M, ID>,
+        ReadService<M, ID>,
         RepositoryProvider<R>,
-        ModelClassProvider<M>,
+        EntityClassProvider<M>,
         SpecificationCombiner<M> {
 
     @Override
@@ -48,7 +48,7 @@ public interface JpaSpecificationReadService<M extends Persistable<ID>, ID, R ex
     @Override
     default M internalFind(ID id) {
         var spec = Specification.<M>where((root, query, cb) -> cb.equal(root.get("id"), id));
-        return getRepository().findOne(processSpecification(spec)).orElseThrow(() -> new NotFoundModelException(getEntityClass(), id));
+        return getRepository().findOne(processSpecification(spec)).orElseThrow(() -> new NotFoundEntityException(getEntityClass(), id));
     }
 
     @Override

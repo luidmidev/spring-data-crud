@@ -1,7 +1,7 @@
 package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 
-import io.github.luidmidev.springframework.data.crud.core.services.ReadService;
+import io.github.luidmidev.springframework.data.crud.core.services.RepositoryReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.EntityManagerProvider;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSmartSearch;
@@ -18,7 +18,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @param <R>  Repositorys
  */
 public interface JpaReadService<M extends Persistable<ID>, ID, R extends JpaRepository<M, ID>> extends
-        ReadService<M, ID, R>,
+        RepositoryReadService<M, ID, R>,
         EntityManagerProvider {
 
     @Override

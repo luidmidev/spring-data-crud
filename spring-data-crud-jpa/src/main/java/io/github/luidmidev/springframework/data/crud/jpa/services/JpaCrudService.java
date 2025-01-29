@@ -1,7 +1,7 @@
 package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 
-import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
+import io.github.luidmidev.springframework.data.crud.core.services.RepositoryCrudService;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -16,5 +16,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface JpaCrudService<M extends Persistable<ID>, D, ID, R extends JpaRepository<M, ID>> extends
         JpaReadService<M, ID, R>,
         JpaWriteService<M, D, ID, R>,
-        CrudService<M, D, ID, R> {
+        RepositoryCrudService<M, D, ID, R> {
 }

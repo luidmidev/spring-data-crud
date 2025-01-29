@@ -22,18 +22,25 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
- * Utility class for advanced search in JPA
+ * Utility class for advanced search in JPA.
+ * <p>
+ * This class provides methods for executing advanced search queries on JPA entities,
+ * supporting filtering by multiple fields, sorting, pagination, and dynamic query construction.
+ * It handles special cases such as embedded fields, enumerated types, and element collections.
+ * </p>
  */
 @Slf4j
 @Component
 public class JpaSmartSearch {
 
     /**
-     * List of FromString to convert String to numeric types
+     * Pattern used to match UUID strings.
      */
-
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
+    /**
+     * List of converters to transform strings into numeric types.
+     */
     private static final List<FromString<? extends Number>> FROM_STRINGS = List.of(
             FromString.of(Integer.class, Integer::parseInt),
             FromString.of(Long.class, Long::parseLong),
@@ -50,6 +57,12 @@ public class JpaSmartSearch {
             FromString.of(byte.class, Byte::parseByte)
     );
 
+    /**
+     * Gets the wrapper type for a primitive class.
+     *
+     * @param primitiveType the primitive type class
+     * @return the corresponding wrapper class
+     */
     private static Class<?> getWrapperType(Class<?> primitiveType) {
         if (primitiveType == int.class) return Integer.class;
         if (primitiveType == long.class) return Long.class;
@@ -62,6 +75,16 @@ public class JpaSmartSearch {
         return primitiveType;
     }
 
+    /**
+     * Executes a search query with pagination for a specific domain class.
+     *
+     * @param em           the EntityManager to interact with the database
+     * @param search       the search string
+     * @param pageable     pagination information
+     * @param domainClass  the domain class to search in
+     * @param <M>          the type of the domain class
+     * @return a Page containing the results of the search
+     */
     public static <M> Page<M> search(EntityManager em, String search, Pageable pageable, Class<M> domainClass) {
         if (log.isDebugEnabled()) {
             log.debug("Searching page {} with search: {}", domainClass.getName(), search);
@@ -69,6 +92,16 @@ public class JpaSmartSearch {
         return search(em, search, pageable, null, domainClass);
     }
 
+    /**
+     * Executes a search query with sorting for a specific domain class.
+     *
+     * @param em           the EntityManager to interact with the database
+     * @param search       the search string
+     * @param sort         sorting information
+     * @param domainClass  the domain class to search in
+     * @param <M>          the type of the domain class
+     * @return a List containing the results of the search
+     */
     public static <M> List<M> search(EntityManager em, String search, Sort sort, Class<M> domainClass) {
         if (log.isDebugEnabled()) {
             log.debug("Searching {} with search: {}", domainClass.getName(), search);
@@ -76,7 +109,17 @@ public class JpaSmartSearch {
         return search(em, search, sort, null, domainClass);
     }
 
-
+    /**
+     * Executes a search query with pagination and additional search conditions.
+     *
+     * @param em           the EntityManager to interact with the database
+     * @param search       the search string
+     * @param pageable     pagination information
+     * @param additions    additional search conditions
+     * @param domainClass  the domain class to search in
+     * @param <M>          the type of the domain class
+     * @return a Page containing the results of the search
+     */
     public static <M> Page<M> search(EntityManager em, String search, Pageable pageable, AdditionsSearch<M> additions, Class<M> domainClass) {
 
         if (log.isDebugEnabled()) {
@@ -108,6 +151,17 @@ public class JpaSmartSearch {
         });
     }
 
+    /**
+     * Executes a search query with sorting and additional search conditions.
+     *
+     * @param em           the EntityManager to interact with the database
+     * @param search       the search string
+     * @param sort         sorting information
+     * @param additions    additional search conditions
+     * @param domainClass  the domain class to search in
+     * @param <M>          the type of the domain class
+     * @return a List containing the results of the search
+     */
     public static <M> List<M> search(EntityManager em, String search, Sort sort, AdditionsSearch<M> additions, Class<M> domainClass) {
         if (log.isDebugEnabled()) {
             log.debug("Searching {} with search: {} and additions: {}", domainClass.getName(), search, additions);
@@ -123,6 +177,16 @@ public class JpaSmartSearch {
         });
     }
 
+    /**
+     * Counts the number of results for a search query with additional search conditions.
+     *
+     * @param em           the EntityManager to interact with the database
+     * @param search       the search string
+     * @param additions    additional search conditions
+     * @param domainClass  the domain class to search in
+     * @param <M>          the type of the domain class
+     * @return the number of results
+     */
     public static <M> long countBySearch(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> domainClass) {
         return queryExecutor(em, search, additions, Long.class, domainClass, (cb, query, root) -> {
             query.select(cb.count(root));
@@ -130,6 +194,17 @@ public class JpaSmartSearch {
         });
     }
 
+    /**
+     * Constructs predicates for searching in all columns of an entity.
+     *
+     * @param search       the search string
+     * @param root         the root entity in the criteria query
+     * @param cb           the CriteriaBuilder used to construct the query
+     * @param domainClass  the domain class to search in
+     * @param joinColumns  optional join columns to include in the search
+     * @param <M>          the type of the domain class
+     * @return a Predicate representing the search condition
+     */
     private static <M> Predicate searchInAllColumns(@NotNull String search, Root<M> root, CriteriaBuilder cb, Class<M> domainClass, String... joinColumns) {
 
         var predicates = new ArrayList<>(getSearchPredicates(search, root, cb, domainClass));
