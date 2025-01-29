@@ -1,4 +1,4 @@
-package io.github.luidmidev.springframework.data.crud.jpa;
+package io.github.luidmidev.springframework.data.crud.jpa.providers;
 
 import jakarta.persistence.EntityManager;
 

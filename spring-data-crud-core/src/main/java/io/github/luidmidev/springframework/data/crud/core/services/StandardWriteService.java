@@ -1,8 +1,8 @@
 package io.github.luidmidev.springframework.data.crud.core.services;
 
 
-import io.github.luidmidev.springframework.data.crud.core.EntityClassProvider;
-import io.github.luidmidev.springframework.data.crud.core.RepositoryProvider;
+import io.github.luidmidev.springframework.data.crud.core.providers.EntityClassProvider;
+import io.github.luidmidev.springframework.data.crud.core.providers.RepositoryProvider;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.repository.ListCrudRepository;
@@ -24,7 +24,7 @@ import org.springframework.validation.annotation.Validated;
  *             {@link PagingAndSortingRepository} for pagination and sorting operations.
  */
 @Validated
-public interface RepositoryWriteService<M extends Persistable<ID>, D, ID, R extends ListCrudRepository<M, ID> & PagingAndSortingRepository<M, ID>> extends
+public interface StandardWriteService<M extends Persistable<ID>, D, ID, R extends ListCrudRepository<M, ID> & PagingAndSortingRepository<M, ID>> extends
         WriteService<M, D, ID>,
         EntityClassProvider<M>,
         RepositoryProvider<R> {

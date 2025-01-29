@@ -1,7 +1,7 @@
 package io.github.luidmidev.springframework.data.crud.core.http.controllers;
 
 
-import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
+import io.github.luidmidev.springframework.data.crud.core.providers.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
 import org.springframework.data.domain.Page;
@@ -47,8 +47,7 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
             @RequestParam(required = false) MultiValueMap<String, String> filters,
             @PageableDefault Pageable pageable
     ) {
-        var ignoreParams = SpringDataCrudAutoConfiguration.getIgnoreParams();
-        if (ignoreParams != null) ignoreParams.forEach(filters::remove);
+        SpringDataCrudAutoConfiguration.clearIgnoreParams(filters);
         return ResponseEntity.ok(getService().page(search, pageable, filters));
     }
 

@@ -1,7 +1,6 @@
 package io.github.luidmidev.springframework.data.crud.core.operations;
 
 
-import io.github.luidmidev.springframework.data.crud.core.EnabledStatePersistable;
 import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;
 import io.github.luidmidev.springframework.data.crud.core.security.AuthorizationCrudManager;
 import jakarta.validation.Valid;
@@ -138,44 +137,4 @@ public non-sealed interface WriteOperations<M extends Persistable<ID>, D, ID> ex
      */
     @Transactional
     void doDelete(@NotNull ID id) throws NotFoundEntityException;
-
-
-    interface EnabledStateOperation<M extends EnabledStatePersistable<ID>, ID> {
-
-        /**
-         * Changes the enabled state of an entity.
-         * <br>
-         * This method is protected by {@link AuthorizationCrudManager} to ensure that the user has permission
-         * to change the enabled state of the entity, and is further secured by {@link PreAuthorize} to validate that the user is authorized
-         * to perform the 'UPDATE' action.
-         * <br>
-         * The method updates the entity with the provided ID, ensuring that the enabled state is properly applied.
-         *
-         * @param id The ID of the entity to update.
-         * @param status The new enabled state for the entity.
-         * @return The updated entity.
-         * @throws NotFoundEntityException If the entity to update is not found.
-         * @throws AccessDeniedException If the user is not authorized to update the entity.
-         */
-        @SuppressWarnings("java:S6809")
-        @Transactional
-        @PreAuthorize("@authorizationCrudManager.canAccess(this, 'UPDATE')")
-        default M updateEnabled(@NotNull ID id, boolean status) throws NotFoundEntityException {
-            return doUpdateEnabled(id, status);
-        }
-
-        /**
-         * Updates the enabled state of an existing entity without additional protection.
-         * <br>
-         * This method is unprotected and serves as the core implementation for updating the enabled state of an entity.
-         * It is called internally by the {@link EnabledStateOperation#updateEnabled} method after authorization checks are performed.
-         *
-         * @param id The ID of the entity to update.
-         * @param status The new enabled state for the entity.
-         * @return The updated entity.
-         * @throws NotFoundEntityException If the entity to update is not found.
-         */
-        @Transactional
-        M doUpdateEnabled(@NotNull ID id, boolean status) throws NotFoundEntityException;
-    }
 }

@@ -3,7 +3,7 @@ package io.github.luidmidev.springframework.data.crud.core.http.controllers;
 
 import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
 import io.github.luidmidev.springframework.data.crud.core.http.export.Exporter;
-import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
+import io.github.luidmidev.springframework.data.crud.core.providers.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.http.export.ExportConfig;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
 import org.springframework.core.io.ByteArrayResource;
@@ -59,8 +59,7 @@ public interface ExportController<ID, S extends ReadOperations<?, ID>> extends S
             @PageableDefault Pageable pageable
     ) {
         var config = ExportConfig.of(fields, titles);
-        var ignoreParams = SpringDataCrudAutoConfiguration.getIgnoreParams();
-        if (ignoreParams != null) ignoreParams.forEach(filters::remove);
+        SpringDataCrudAutoConfiguration.clearIgnoreParams(filters);
         return getExporter().export(getService().page(search, pageable, filters), config);
     }
 

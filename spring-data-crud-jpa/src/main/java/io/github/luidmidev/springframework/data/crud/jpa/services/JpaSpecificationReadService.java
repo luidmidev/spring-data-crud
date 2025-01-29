@@ -1,8 +1,8 @@
 package io.github.luidmidev.springframework.data.crud.jpa.services;
 
 
-import io.github.luidmidev.springframework.data.crud.core.EntityClassProvider;
-import io.github.luidmidev.springframework.data.crud.core.RepositoryProvider;
+import io.github.luidmidev.springframework.data.crud.core.providers.EntityClassProvider;
+import io.github.luidmidev.springframework.data.crud.core.providers.RepositoryProvider;
 import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;
 import io.github.luidmidev.springframework.data.crud.core.services.ReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.SpecificationCombiner;

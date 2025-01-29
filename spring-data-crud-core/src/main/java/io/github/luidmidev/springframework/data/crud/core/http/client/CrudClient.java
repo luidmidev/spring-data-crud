@@ -111,7 +111,7 @@ public class CrudClient<M extends Persistable<ID>, D, ID> {
                 .pathSegment("ids");
 
         for (var id : ids) {
-            url.queryParam("id", id.toString());
+            url.queryParam("ids", id.toString());
         }
 
         var response = restTemplate.exchange(

@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -82,5 +83,9 @@ public class SpringDataCrudAutoConfiguration {
     @Contract(pure = true)
     private static @NotNull Customizer<AuthorizationManagerCrudMatcherRegistry> defaultCustomizer() {
         return registry -> registry.anyOperation().permitAll();
+    }
+
+    public static void clearIgnoreParams(Map<String, ?> map) {
+        ignoreParams.forEach(map::remove);
     }
 }

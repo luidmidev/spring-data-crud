@@ -1,8 +1,8 @@
 package io.github.luidmidev.springframework.data.crud.core.services;
 
 
-import io.github.luidmidev.springframework.data.crud.core.EntityClassProvider;
-import io.github.luidmidev.springframework.data.crud.core.RepositoryProvider;
+import io.github.luidmidev.springframework.data.crud.core.providers.EntityClassProvider;
+import io.github.luidmidev.springframework.data.crud.core.providers.RepositoryProvider;
 import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +25,7 @@ import java.util.List;
  * @param <R>  Repository type, which extends {@link ListCrudRepository} for CRUD operations and
  *             {@link PagingAndSortingRepository} for pagination and sorting operations.
  */
-public interface RepositoryReadService<M extends Persistable<ID>, ID, R extends ListCrudRepository<M, ID> & PagingAndSortingRepository<M, ID>> extends
+public interface StandardReadService<M extends Persistable<ID>, ID, R extends ListCrudRepository<M, ID> & PagingAndSortingRepository<M, ID>> extends
         ReadService<M, ID>,
         EntityClassProvider<M>,
         RepositoryProvider<R> {

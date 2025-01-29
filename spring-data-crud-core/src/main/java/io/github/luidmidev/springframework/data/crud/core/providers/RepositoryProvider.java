@@ -1,4 +1,4 @@
-package io.github.luidmidev.springframework.data.crud.core;
+package io.github.luidmidev.springframework.data.crud.core.providers;
 
 /**
  * Interface for providing access to a repository.

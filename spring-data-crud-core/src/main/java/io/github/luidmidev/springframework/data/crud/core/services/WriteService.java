@@ -1,7 +1,6 @@
 package io.github.luidmidev.springframework.data.crud.core.services;
 
 
-import io.github.luidmidev.springframework.data.crud.core.EnabledStatePersistable;
 import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;
 import io.github.luidmidev.springframework.data.crud.core.operations.WriteOperations;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.WriteHooks;
@@ -150,25 +149,4 @@ public interface WriteService<M extends Persistable<ID>, D, ID> extends WriteOpe
      * @param entity Entity to delete
      */
     void internalDelete(M entity);
-
-
-    /**
-     * CRUD Service that extends {@link WriteOperations.EnabledStateOperation} to provide CRUD operations for entities with enabled state.
-     * @param <M> Entity model, which extends {@link EnabledStatePersistable} with an ID type of {@code ID}
-     * @param <ID> Type of the entity's identifier (e.g., {@link Long}, {@link String})
-     */
-    interface EnabledStateService<M extends EnabledStatePersistable<ID>, ID> extends WriteOperations.EnabledStateOperation<M, ID> {
-
-        @Override
-        default M doUpdateEnabled(ID id, boolean status) throws NotFoundEntityException {
-            var entity = internalFind(id);
-            entity.setEnabled(status);
-            internalUpdate(entity);
-            return entity;
-        }
-
-        M internalFind(ID id) throws NotFoundEntityException;
-
-        void internalUpdate(M entity);
-    }
 }

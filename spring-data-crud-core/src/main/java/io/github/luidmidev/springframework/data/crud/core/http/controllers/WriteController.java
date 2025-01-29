@@ -1,7 +1,6 @@
 package io.github.luidmidev.springframework.data.crud.core.http.controllers;
 
-import io.github.luidmidev.springframework.data.crud.core.EnabledStatePersistable;
-import io.github.luidmidev.springframework.data.crud.core.ServiceProvider;
+import io.github.luidmidev.springframework.data.crud.core.providers.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.operations.WriteOperations;
 import org.springframework.data.domain.Persistable;
 import org.springframework.http.ResponseEntity;
@@ -73,20 +72,6 @@ public interface WriteController<M extends Persistable<ID>, D, ID, S extends Wri
      */
     default String deletedMessage(ID id) {
         return "Deleted " + id;
-    }
-
-    /**
-     * Controller for enabling/disabling entities.
-     * @param <M> Entity model that extends {@link EnabledStatePersistable} with the specified {@code ID}.
-     * @param <ID> The type of the entity's identifier.
-     * @param <S> Service that extends {@link WriteOperations.EnabledStateOperation} for the enabled state operations.
-     */
-    interface EnableStatusController<M extends EnabledStatePersistable<ID>, ID, S extends WriteOperations.EnabledStateOperation<M, ID>> extends ServiceProvider<S> {
-
-        @PutMapping("/{id}/enabled")
-        default ResponseEntity<M> updateEnabled(@PathVariable ID id, @RequestParam boolean value) {
-            return ResponseEntity.ok(getService().updateEnabled(id, value));
-        }
     }
 
 }
