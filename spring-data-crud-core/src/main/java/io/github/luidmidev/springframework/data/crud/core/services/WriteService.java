@@ -5,8 +5,8 @@ import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEnt
 import io.github.luidmidev.springframework.data.crud.core.operations.WriteOperations;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.WriteHooks;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.SneakyThrows;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Persistable;
 import org.springframework.validation.annotation.Validated;
 
