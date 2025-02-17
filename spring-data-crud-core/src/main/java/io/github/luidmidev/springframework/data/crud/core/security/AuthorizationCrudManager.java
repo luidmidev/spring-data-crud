@@ -44,7 +44,9 @@ public class AuthorizationCrudManager implements AuthorizationManager<CrudAuthor
                 if (log.isTraceEnabled()) {
                     log.trace("Checking authorization on {} using {}", context, manager);
                 }
-                return manager.check(authentication, context);
+                @SuppressWarnings("deprecation")
+                var result = manager.check(authentication, context);
+                return result;
             }
         }
 

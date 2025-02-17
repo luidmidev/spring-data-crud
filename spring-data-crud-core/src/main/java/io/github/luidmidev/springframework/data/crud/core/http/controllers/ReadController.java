@@ -1,6 +1,7 @@
 package io.github.luidmidev.springframework.data.crud.core.http.controllers;
 
 
+import io.github.luidmidev.springframework.data.crud.core.http.PaginationParameters;
 import io.github.luidmidev.springframework.data.crud.core.providers.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
 import io.github.luidmidev.springframework.data.crud.core.operations.ReadOperations;
@@ -42,6 +43,7 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadOpe
      * @return A paginated list of entities matching the search and filter criteria
      */
     @GetMapping
+    @PaginationParameters
     default ResponseEntity<Page<M>> page(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) MultiValueMap<String, String> filters,

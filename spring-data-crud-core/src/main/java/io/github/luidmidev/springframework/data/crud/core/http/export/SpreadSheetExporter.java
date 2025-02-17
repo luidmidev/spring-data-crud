@@ -31,9 +31,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class SpreadSheetExporter implements Exporter {
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
     private final Map<Class<?>, Map<String, Method>> methodCache = new ConcurrentHashMap<>();
 
+    public SpreadSheetExporter(ObjectMapper mapper) {
+        this.mapper = mapper;
+    }
+
+    public SpreadSheetExporter() {
+        this(new ObjectMapper());
+    }
 
     public ResponseEntity<ByteArrayResource> export(Iterable<?> elements, ExportConfig config) {
 

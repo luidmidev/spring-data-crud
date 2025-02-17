@@ -2,6 +2,7 @@ package io.github.luidmidev.springframework.data.crud.core.http.controllers;
 
 
 import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
+import io.github.luidmidev.springframework.data.crud.core.http.PaginationParameters;
 import io.github.luidmidev.springframework.data.crud.core.http.export.Exporter;
 import io.github.luidmidev.springframework.data.crud.core.providers.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.http.export.ExportConfig;
@@ -50,6 +51,7 @@ public interface ExportController<ID, S extends ReadOperations<?, ID>> extends S
      * @param pageable the pagination information
      * @return a {@link ResponseEntity} containing the export file as a {@link ByteArrayResource}
      */
+    @PaginationParameters
     @GetMapping("/export")
     default ResponseEntity<ByteArrayResource> exportPage(
             @RequestParam List<String> fields,
@@ -60,6 +62,8 @@ public interface ExportController<ID, S extends ReadOperations<?, ID>> extends S
     ) {
         var config = ExportConfig.of(fields, titles);
         SpringDataCrudAutoConfiguration.clearIgnoreParams(filters);
+        filters.remove("fields");
+        filters.remove("titles");
         return getExporter().export(getService().page(search, pageable, filters), config);
     }
 
