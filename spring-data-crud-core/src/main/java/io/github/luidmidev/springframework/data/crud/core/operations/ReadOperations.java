@@ -36,9 +36,9 @@ public non-sealed interface ReadOperations<M, ID> extends Crud {
      * <br>
      * This method is protected by {@link AuthorizationCrudManager} and {@link PreAuthorize}.
      *
-     * @param search  Search query for filtering results
+     * @param search   Search query for filtering results
      * @param pageable Pagination information
-     * @param filters Additional filters for the query
+     * @param filters  Additional filters for the query
      * @return A page of entities that match the search and filter criteria
      * @throws AccessDeniedException If the user is not authorized to perform this action
      */
@@ -55,7 +55,7 @@ public non-sealed interface ReadOperations<M, ID> extends Crud {
      * @param id ID of the entity to retrieve
      * @return The entity corresponding to the provided ID
      * @throws NotFoundEntityException If the entity with the provided ID does not exist
-     * @throws AccessDeniedException If the user is not authorized to perform this action
+     * @throws AccessDeniedException   If the user is not authorized to perform this action
      */
     @PreAuthorize("@authorizationCrudManager.canAccess(this, 'FIND')")
     default M find(@NotNull ID id) throws NotFoundEntityException, AccessDeniedException {
@@ -108,9 +108,9 @@ public non-sealed interface ReadOperations<M, ID> extends Crud {
      * <br>
      * This method is not protected by authorization checks.
      *
-     * @param search  Search query for filtering results
+     * @param search   Search query for filtering results
      * @param pageable Pagination information
-     * @param filters Additional filters for the query
+     * @param filters  Additional filters for the query
      * @return A page of entities that match the search and filter criteria
      */
     Page<M> doPage(String search, Pageable pageable, MultiValueMap<String, String> filters);

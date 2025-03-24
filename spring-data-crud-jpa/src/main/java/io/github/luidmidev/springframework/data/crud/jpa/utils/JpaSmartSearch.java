@@ -295,7 +295,7 @@ public class JpaSmartSearch {
         if (field.isAnnotationPresent(ElementCollection.class) && path instanceof From<?, ?> from) {
             var elementType = getFirstGenericTypeClass(field);
             if (elementType.isEnum()) {
-                expression = from.join(field.getName());
+                expression = from.join(field.getName(), JoinType.LEFT);
                 candidates = searchEnumCandidates((Class<? extends Enum<?>>) elementType, search);
             }
         } else {

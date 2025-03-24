@@ -150,7 +150,9 @@ public interface ReadService<M extends Persistable<ID>, ID> extends ReadOperatio
      * @param filters Additional filters for the query
      * @return A page of entities matching the search and filter criteria
      */
-    Page<M> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> filters);
+    default Page<M> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> filters) {
+        return internalSearch(search, pageable);
+    }
 
     /**
      * Internal method to retrieve an entity by its ID.
