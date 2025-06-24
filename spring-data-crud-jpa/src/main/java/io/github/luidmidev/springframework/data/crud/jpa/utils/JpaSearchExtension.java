@@ -16,7 +16,7 @@ import java.util.List;
  * @param <M> Model
  */
 @Getter(AccessLevel.PACKAGE)
-public class AdditionsSearch<M> {
+public class JpaSearchExtension<M> {
 
     private boolean hasInvoked = false;
 
@@ -41,7 +41,7 @@ public class AdditionsSearch<M> {
      * @param operator Boolean operator
      * @return this
      */
-    public AdditionsSearch<M> operator(@NotNull Predicate.BooleanOperator operator) {
+    public JpaSearchExtension<M> operator(@NotNull Predicate.BooleanOperator operator) {
         this.operator = operator;
         return this;
     }
@@ -51,7 +51,7 @@ public class AdditionsSearch<M> {
      * @param specification Specification
      * @return this
      */
-    public AdditionsSearch<M> specification(@NotNull Specification<M> specification) {
+    public JpaSearchExtension<M> specification(@NotNull Specification<M> specification) {
         if (hasInvoked) {
             throw new IllegalStateException("Specification id already defined for you");
         }
@@ -65,7 +65,7 @@ public class AdditionsSearch<M> {
      * @param specification Specification
      * @return this
      */
-    public AdditionsSearch<M> and(@NotNull Specification<M> specification) {
+    public JpaSearchExtension<M> and(@NotNull Specification<M> specification) {
         this.operator = Predicate.BooleanOperator.AND;
         return specification(specification);
     }
@@ -75,7 +75,7 @@ public class AdditionsSearch<M> {
      * @param specification Specification
      * @return this
      */
-    public AdditionsSearch<M> or(@NotNull Specification<M> specification) {
+    public JpaSearchExtension<M> or(@NotNull Specification<M> specification) {
         this.operator = Predicate.BooleanOperator.AND;
         return specification(specification);
     }
@@ -85,7 +85,7 @@ public class AdditionsSearch<M> {
      * @param join Join
      * @return this
      */
-    public AdditionsSearch<M> addJoin(@NotNull String join) {
+    public JpaSearchExtension<M> addJoin(@NotNull String join) {
         this.joins.add(join);
         return this;
     }
@@ -95,7 +95,7 @@ public class AdditionsSearch<M> {
      * @param joins Joins
      * @return this
      */
-    public AdditionsSearch<M> addJoins(@NotNull String @NotNull ... joins) {
+    public JpaSearchExtension<M> addJoins(@NotNull String @NotNull ... joins) {
         Collections.addAll(this.joins, joins);
         return this;
     }

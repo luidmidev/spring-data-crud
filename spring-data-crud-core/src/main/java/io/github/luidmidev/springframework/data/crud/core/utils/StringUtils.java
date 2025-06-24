@@ -1,17 +1,14 @@
 package io.github.luidmidev.springframework.data.crud.core.utils;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.Normalizer;
 
-@Log4j2
+@Slf4j
+@UtilityClass
 public final class StringUtils {
-
-
-    private StringUtils() {
-        throw new IllegalStateException("Utility class");
-    }
 
     public static @NotNull String toASCII(@NotNull String string) {
         try {

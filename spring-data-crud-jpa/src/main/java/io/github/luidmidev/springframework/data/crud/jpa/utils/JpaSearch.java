@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Component
-public class JpaSmartSearch {
+public class JpaSearch {
 
     /**
      * Pattern used to match UUID strings.
@@ -120,7 +120,7 @@ public class JpaSmartSearch {
      * @param <M>          the type of the domain class
      * @return a Page containing the results of the search
      */
-    public static <M> Page<M> search(EntityManager em, String search, Pageable pageable, AdditionsSearch<M> additions, Class<M> domainClass) {
+    public static <M> Page<M> search(EntityManager em, String search, Pageable pageable, JpaSearchExtension<M> additions, Class<M> domainClass) {
 
         if (log.isDebugEnabled()) {
             log.debug("Searching page {} with search: {} and additions: {}", domainClass.getName(), search, additions);
@@ -162,7 +162,7 @@ public class JpaSmartSearch {
      * @param <M>          the type of the domain class
      * @return a List containing the results of the search
      */
-    public static <M> List<M> search(EntityManager em, String search, Sort sort, AdditionsSearch<M> additions, Class<M> domainClass) {
+    public static <M> List<M> search(EntityManager em, String search, Sort sort, JpaSearchExtension<M> additions, Class<M> domainClass) {
         if (log.isDebugEnabled()) {
             log.debug("Searching {} with search: {} and additions: {}", domainClass.getName(), search, additions);
         }
@@ -187,7 +187,7 @@ public class JpaSmartSearch {
      * @param <M>          the type of the domain class
      * @return the number of results
      */
-    public static <M> long countBySearch(EntityManager em, String search, AdditionsSearch<M> additions, Class<M> domainClass) {
+    public static <M> long countBySearch(EntityManager em, String search, JpaSearchExtension<M> additions, Class<M> domainClass) {
         return queryExecutor(em, search, additions, Long.class, domainClass, (cb, query, root) -> {
             query.select(cb.count(root));
             return em.createQuery(query).getSingleResult();
@@ -318,7 +318,7 @@ public class JpaSmartSearch {
                 set.add(constant);
                 continue;
             }
-            if (constant instanceof JpaEnumCandidate enumCandidate && enumCandidate.isCandidate(value)) {
+            if (constant instanceof JpaEnumSearchCandidate enumCandidate && enumCandidate.isCandidate(value)) {
                 set.add(constant);
             }
         }
@@ -388,7 +388,7 @@ public class JpaSmartSearch {
     private static <M, E> E queryExecutor(
             EntityManager em,
             String search,
-            AdditionsSearch<M> additions,
+            JpaSearchExtension<M> additions,
             Class<M> entityClass,
             Executor<M, M, E> executor
     ) {
@@ -398,7 +398,7 @@ public class JpaSmartSearch {
     private static <Q, M, E> E queryExecutor(
             EntityManager em,
             String search,
-            AdditionsSearch<M> additions,
+            JpaSearchExtension<M> additions,
             Class<Q> resultClass,
             Class<M> entityClass,
             Executor<Q, M, E> executor
@@ -438,7 +438,7 @@ public class JpaSmartSearch {
 
     public static <M> Predicate getPredicate(
             String search,
-            AdditionsSearch<M> additions,
+            JpaSearchExtension<M> additions,
             CriteriaBuilder cb,
             CriteriaQuery<?> query,
             Root<M> root,

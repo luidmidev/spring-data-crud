@@ -1,6 +1,6 @@
 package io.github.luidmidev.springframework.data.crud.jpa.utils;
 
-public interface JpaEnumCandidate {
+public interface JpaEnumSearchCandidate {
 
     String name();
 

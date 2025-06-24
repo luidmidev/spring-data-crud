@@ -10,7 +10,6 @@ package io.github.luidmidev.springframework.data.crud.core.providers;
  * @param <M> The type of the entity model.
  */
 public interface EntityClassProvider<M> {
-
     /**
      * Retrieves the class type of the entity model {@code M}.
      * <p>

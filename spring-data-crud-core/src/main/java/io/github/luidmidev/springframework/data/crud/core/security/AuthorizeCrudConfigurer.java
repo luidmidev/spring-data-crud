@@ -184,7 +184,6 @@ public class AuthorizeCrudConfigurer {
             return access(PERMIT_ALL_AUTHORIZATION_MANAGER);
         }
 
-
         public AuthorizationManagerCrudMatcherRegistry denyAll() {
             return access(DENY_ALL_AUTHORIZATION_MANAGER);
         }

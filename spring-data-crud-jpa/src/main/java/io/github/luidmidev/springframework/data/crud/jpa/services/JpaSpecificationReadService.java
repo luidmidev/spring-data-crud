@@ -6,8 +6,8 @@ import io.github.luidmidev.springframework.data.crud.core.providers.RepositoryPr
 import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;
 import io.github.luidmidev.springframework.data.crud.core.services.ReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.SpecificationCombiner;
-import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
-import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSmartSearch;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSearchExtension;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSearch;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
@@ -31,42 +31,45 @@ public interface JpaSpecificationReadService<M extends Persistable<ID>, ID, R ex
 
     @Override
     default Page<M> internalPage(Pageable pageable) {
-        var spec = Specification.<M>where(null);
-        return getRepository().findAll(processSpecification(spec), pageable);
+        Specification<M> spec = (root, query, cb) -> null;
+        return getRepository().findAll(combineSpecification(spec), pageable);
     }
 
     @Override
     default Page<M> internalSearch(String search, Pageable pageable) {
-        return internalSearch(search, pageable, (AdditionsSearch<M>) null);
+        return internalSearch(search, pageable, (JpaSearchExtension<M>) null);
     }
 
-    default Page<M> internalSearch(String search, Pageable pageable, AdditionsSearch<M> additionsSearch) {
-        var spec = Specification.<M>where((root, query, cb) -> JpaSmartSearch.getPredicate(search, additionsSearch, cb, query, root, getEntityClass()));
-        return getRepository().findAll(processSpecification(spec), pageable);
+    default Page<M> internalSearch(String search, Pageable pageable, JpaSearchExtension<M> jpaSearchExtension) {
+        Specification<M> spec = (root, query, cb) -> JpaSearch.getPredicate(search, jpaSearchExtension, cb, query, root, getEntityClass());
+        return getRepository().findAll(combineSpecification(spec), pageable);
     }
 
     @Override
     default M internalFind(ID id) {
-        var spec = Specification.<M>where((root, query, cb) -> cb.equal(root.get("id"), id));
-        return getRepository().findOne(processSpecification(spec)).orElseThrow(() -> new NotFoundEntityException(getEntityClass(), id));
+        Specification<M> spec = (root, query, cb) -> cb.equal(root.get(getIdFieldName()), id);
+        return getRepository().findOne(combineSpecification(spec)).orElseThrow(() -> new NotFoundEntityException(getEntityClass(), id));
     }
 
     @Override
     default List<M> internalFind(List<ID> ids) {
-        var spec = Specification.<M>where((root, query, cb) -> root.get("id").in(ids));
-        return getRepository().findAll(processSpecification(spec));
+        Specification<M> spec = (root, query, cb) -> root.get(getIdFieldName()).in(ids);
+        return getRepository().findAll(combineSpecification(spec));
     }
 
     @Override
     default long internalCount() {
-        var spec = Specification.<M>where(null);
-        return getRepository().count(processSpecification(spec));
+        Specification<M> spec = (root, query, cb) -> null;
+        return getRepository().count(combineSpecification(spec));
     }
 
     @Override
     default boolean internalExists(ID id) {
-        var spec = Specification.<M>where((root, query, cb) -> cb.equal(root.get("id"), id));
-        return getRepository().exists(processSpecification(spec));
+        Specification<M> spec = (root, query, cb) -> cb.equal(root.get(getIdFieldName()), id);
+        return getRepository().exists(combineSpecification(spec));
     }
 
+    default String getIdFieldName() {
+        return "id";
+    }
 }

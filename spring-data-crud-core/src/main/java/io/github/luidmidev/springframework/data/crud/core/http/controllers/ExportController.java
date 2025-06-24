@@ -62,8 +62,6 @@ public interface ExportController<ID, S extends ReadOperations<?, ID>> extends S
     ) {
         var config = ExportConfig.of(fields, titles);
         SpringDataCrudAutoConfiguration.clearIgnoreParams(filters);
-        filters.remove("fields");
-        filters.remove("titles");
         return getExporter().export(getService().page(search, pageable, filters), config);
     }
 

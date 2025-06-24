@@ -42,7 +42,8 @@ public interface StandardReadService<M extends Persistable<ID>, ID, R extends Li
      */
     @Override
     default Page<M> internalPage(Pageable pageable) {
-        return getRepository().findAll(pageable);
+        return getRepository()
+                .findAll(pageable);
     }
 
     /**
@@ -58,7 +59,9 @@ public interface StandardReadService<M extends Persistable<ID>, ID, R extends Li
      */
     @Override
     default M internalFind(ID id) {
-        return getRepository().findById(id).orElseThrow(() -> new NotFoundEntityException(getEntityClass(), id));
+        return getRepository()
+                .findById(id)
+                .orElseThrow(() -> new NotFoundEntityException(getEntityClass(), id));
     }
 
     /**
@@ -72,7 +75,8 @@ public interface StandardReadService<M extends Persistable<ID>, ID, R extends Li
      */
     @Override
     default List<M> internalFind(List<ID> ids) {
-        return getRepository().findAllById(ids);
+        return getRepository()
+                .findAllById(ids);
     }
 
     /**
@@ -85,7 +89,8 @@ public interface StandardReadService<M extends Persistable<ID>, ID, R extends Li
      */
     @Override
     default long internalCount() {
-        return getRepository().count();
+        return getRepository()
+                .count();
     }
 
     /**
@@ -99,6 +104,7 @@ public interface StandardReadService<M extends Persistable<ID>, ID, R extends Li
      */
     @Override
     default boolean internalExists(ID id) {
-        return getRepository().existsById(id);
+        return getRepository()
+                .existsById(id);
     }
 }
