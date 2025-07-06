@@ -31,13 +31,13 @@ public interface ReadHooks<E extends Persistable<ID>, ID> {
      * This static method allows access to the default (no-op) implementation of the {@link ReadHooks} interface.
      * </p>
      *
-     * @param <M>  Entity model that extends {@link Persistable} with the specified {@code ID}.
+     * @param <E>  Entity model that extends {@link Persistable} with the specified {@code ID}.
      * @param <ID> The type of the entity's identifier.
      * @return The default {@link ReadHooks} instance.
      */
     @SuppressWarnings("unchecked")
-    static <M extends Persistable<ID>, ID> ReadHooks<M, ID> getDefault() {
-        return (ReadHooks<M, ID>) DEFAULT;
+    static <E extends Persistable<ID>, ID> ReadHooks<E, ID> getDefault() {
+        return (ReadHooks<E, ID>) DEFAULT;
     }
 
     /**

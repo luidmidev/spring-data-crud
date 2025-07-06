@@ -31,14 +31,14 @@ public interface WriteHooks<E extends Persistable<ID>, D, ID> {
      * This static method allows access to the default (no-op) implementation of the {@link WriteHooks} interface.
      * </p>
      *
-     * @param <M>  Entity model that extends {@link Persistable} with the specified {@code ID}.
+     * @param <E>  Entity model that extends {@link Persistable} with the specified {@code ID}.
      * @param <D>  DTO (Data Transfer Object) used for input during write operations.
      * @param <ID> The type of the entity's identifier.
      * @return The default {@link WriteHooks} instance.
      */
     @SuppressWarnings("unchecked")
-    static <M extends Persistable<ID>, D, ID> WriteHooks<M, D, ID> getDefault() {
-        return (WriteHooks<M, D, ID>) DEFAULT;
+    static <E extends Persistable<ID>, D, ID> WriteHooks<E, D, ID> getDefault() {
+        return (WriteHooks<E, D, ID>) DEFAULT;
     }
 
     /**

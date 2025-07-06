@@ -1,7 +1,8 @@
 package io.github.luidmidev.springframework.data.crud.core;
 
 import io.swagger.v3.oas.models.media.ArraySchema;
-import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.IntegerSchema;
+import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.QueryParameter;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -60,7 +61,6 @@ public class SpringDataCrudAutoConfiguration {
 
     @Bean
     @ConditionalOnClass(SpringDocConfiguration.class)
-    @SuppressWarnings("unchecked")
     public OperationCustomizer pageableParameterCustomizer() {
         log.debug("Configuring pageable parameters for Spring Data CRUD operations");
 
@@ -69,23 +69,23 @@ public class SpringDataCrudAutoConfiguration {
 
         var pageParameter = new QueryParameter()
                 .name(pageable.getPageParameter())
-                .schema(new Schema<Integer>().type("integer")._default(0))
+                .schema(new IntegerSchema()._default(0))
                 .description("Page number to retrieve (0-based index)")
                 .required(false);
 
         var sizeParameter = new QueryParameter()
                 .name(pageable.getSizeParameter())
-                .schema(new Schema<Integer>()
-                        .type("integer")
+                .schema(new IntegerSchema()
                         ._default(pageable.getDefaultPageSize())
                         .minimum(BigDecimal.valueOf(1))
-                        .maximum(BigDecimal.valueOf(pageable.getMaxPageSize())))
+                        .maximum(BigDecimal.valueOf(pageable.getMaxPageSize()))
+                )
                 .description("Number of items per page")
                 .required(false);
 
         var sortParameter = new QueryParameter()
                 .name(sort.getSortParameter())
-                .schema(new ArraySchema().items(new Schema<String>().type("string")))
+                .schema(new ArraySchema().items(new StringSchema()))
                 .description("Sorting criteria in the format: property,(asc|desc). Multiple properties can be specified using commas.")
                 .required(false);
 

@@ -32,13 +32,13 @@ public interface CrudHooks<E extends Persistable<ID>, D, ID> extends ReadHooks<E
      * which provides no custom logic for CRUD operations.
      * </p>
      *
-     * @param <M>  Entity model that extends {@link Persistable} with the specified {@code ID}.
+     * @param <E>  Entity model that extends {@link Persistable} with the specified {@code ID}.
      * @param <D>  DTO (Data Transfer Object) used for input during write operations.
      * @param <ID> The type of the entity's identifier.
      * @return The default {@link CrudHooks} instance.
      */
     @SuppressWarnings("unchecked")
-    static <M extends Persistable<ID>, D, ID> CrudHooks<M, D, ID> getDefault() {
-        return (CrudHooks<M, D, ID>) DEFAULT;
+    static <E extends Persistable<ID>, D, ID> CrudHooks<E, D, ID> getDefault() {
+        return (CrudHooks<E, D, ID>) DEFAULT;
     }
 }
