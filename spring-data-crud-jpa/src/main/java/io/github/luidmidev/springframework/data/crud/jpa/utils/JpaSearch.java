@@ -11,7 +11,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -30,7 +29,6 @@ import java.util.regex.Pattern;
  * </p>
  */
 @Slf4j
-@Component
 public class JpaSearch {
 
     /**
@@ -82,10 +80,10 @@ public class JpaSearch {
      * @param search       the search string
      * @param pageable     pagination information
      * @param domainClass  the domain class to search in
-     * @param <M>          the type of the domain class
+     * @param <E>          the type of the domain class
      * @return a Page containing the results of the search
      */
-    public static <M> Page<M> search(EntityManager em, String search, Pageable pageable, Class<M> domainClass) {
+    public static <E> Page<E> search(EntityManager em, String search, Pageable pageable, Class<E> domainClass) {
         if (log.isDebugEnabled()) {
             log.debug("Searching page {} with search: {}", domainClass.getName(), search);
         }
@@ -99,10 +97,10 @@ public class JpaSearch {
      * @param search       the search string
      * @param sort         sorting information
      * @param domainClass  the domain class to search in
-     * @param <M>          the type of the domain class
+     * @param <E>          the type of the domain class
      * @return a List containing the results of the search
      */
-    public static <M> List<M> search(EntityManager em, String search, Sort sort, Class<M> domainClass) {
+    public static <E> List<E> search(EntityManager em, String search, Sort sort, Class<E> domainClass) {
         if (log.isDebugEnabled()) {
             log.debug("Searching {} with search: {}", domainClass.getName(), search);
         }
@@ -117,16 +115,16 @@ public class JpaSearch {
      * @param pageable     pagination information
      * @param additions    additional search conditions
      * @param domainClass  the domain class to search in
-     * @param <M>          the type of the domain class
+     * @param <E>          the type of the domain class
      * @return a Page containing the results of the search
      */
-    public static <M> Page<M> search(EntityManager em, String search, Pageable pageable, JpaSearchExtension<M> additions, Class<M> domainClass) {
+    public static <E> Page<E> search(EntityManager em, String search, Pageable pageable, JpaSearchOptions<E> additions, Class<E> domainClass) {
 
         if (log.isDebugEnabled()) {
             log.debug("Searching page {} with search: {} and additions: {}", domainClass.getName(), search, additions);
         }
 
-        return queryExecutor(em, search, additions, domainClass, (CriteriaBuilder cb, CriteriaQuery<M> query, Root<M> root) -> {
+        return queryExecutor(em, search, additions, domainClass, (CriteriaBuilder cb, CriteriaQuery<E> query, Root<E> root) -> {
 
             if (pageable.getSort().isSorted()) {
                 query.orderBy(resolveOrders(pageable.getSort(), cb, root));
@@ -159,10 +157,10 @@ public class JpaSearch {
      * @param sort         sorting information
      * @param additions    additional search conditions
      * @param domainClass  the domain class to search in
-     * @param <M>          the type of the domain class
+     * @param <E>          the type of the domain class
      * @return a List containing the results of the search
      */
-    public static <M> List<M> search(EntityManager em, String search, Sort sort, JpaSearchExtension<M> additions, Class<M> domainClass) {
+    public static <E> List<E> search(EntityManager em, String search, Sort sort, JpaSearchOptions<E> additions, Class<E> domainClass) {
         if (log.isDebugEnabled()) {
             log.debug("Searching {} with search: {} and additions: {}", domainClass.getName(), search, additions);
         }
@@ -184,10 +182,10 @@ public class JpaSearch {
      * @param search       the search string
      * @param additions    additional search conditions
      * @param domainClass  the domain class to search in
-     * @param <M>          the type of the domain class
+     * @param <E>          the type of the domain class
      * @return the number of results
      */
-    public static <M> long countBySearch(EntityManager em, String search, JpaSearchExtension<M> additions, Class<M> domainClass) {
+    public static <E> long countBySearch(EntityManager em, String search, JpaSearchOptions<E> additions, Class<E> domainClass) {
         return queryExecutor(em, search, additions, Long.class, domainClass, (cb, query, root) -> {
             query.select(cb.count(root));
             return em.createQuery(query).getSingleResult();
@@ -202,10 +200,10 @@ public class JpaSearch {
      * @param cb           the CriteriaBuilder used to construct the query
      * @param domainClass  the domain class to search in
      * @param joinColumns  optional join columns to include in the search
-     * @param <M>          the type of the domain class
+     * @param <E>          the type of the domain class
      * @return a Predicate representing the search condition
      */
-    private static <M> Predicate searchInAllColumns(@NotNull String search, Root<M> root, CriteriaBuilder cb, Class<M> domainClass, String... joinColumns) {
+    private static <E> Predicate searchInAllColumns(@NotNull String search, Root<E> root, CriteriaBuilder cb, Class<E> domainClass, String... joinColumns) {
 
         var predicates = new ArrayList<>(getSearchPredicates(search, root, cb, domainClass));
 
@@ -385,30 +383,30 @@ public class JpaSearch {
         }
     }
 
-    private static <M, E> E queryExecutor(
+    private static <E, R> R queryExecutor(
             EntityManager em,
             String search,
-            JpaSearchExtension<M> additions,
-            Class<M> entityClass,
-            Executor<M, M, E> executor
+            JpaSearchOptions<E> options,
+            Class<E> entityClass,
+            Executor<E, E, R> executor
     ) {
-        return queryExecutor(em, search, additions, entityClass, entityClass, executor);
+        return queryExecutor(em, search, options, entityClass, entityClass, executor);
     }
 
-    private static <Q, M, E> E queryExecutor(
+    private static <Q, E, R> R queryExecutor(
             EntityManager em,
             String search,
-            JpaSearchExtension<M> additions,
+            JpaSearchOptions<E> options,
             Class<Q> resultClass,
-            Class<M> entityClass,
-            Executor<Q, M, E> executor
+            Class<E> entityClass,
+            Executor<Q, E, R> executor
     ) {
 
         var criteriaBuilder = em.getCriteriaBuilder();
         var query = criteriaBuilder.createQuery(resultClass);
         var root = query.from(entityClass);
 
-        var predicate = getPredicate(search, additions, criteriaBuilder, query, root, entityClass);
+        var predicate = getPredicate(search, options, criteriaBuilder, query, root, entityClass);
 
         query.where(predicate);
         return executor.apply(criteriaBuilder, query, root);
@@ -426,19 +424,19 @@ public class JpaSearch {
     }
 
 
-    public static <M> Predicate getPredicate(
+    public static <E> Predicate getPredicate(
             String search,
             CriteriaBuilder cb,
             CriteriaQuery<?> query,
-            Root<M> root,
-            Class<M> entityClass
+            Root<E> root,
+            Class<E> entityClass
     ) {
         return getPredicate(search, null, cb, query, root, entityClass);
     }
 
     public static <M> Predicate getPredicate(
             String search,
-            JpaSearchExtension<M> additions,
+            JpaSearchOptions<M> additions,
             CriteriaBuilder cb,
             CriteriaQuery<?> query,
             Root<M> root,
@@ -495,8 +493,8 @@ public class JpaSearch {
     }
 
     @FunctionalInterface
-    private interface Executor<Q, M, E> {
-        E apply(CriteriaBuilder criteriaBuilder, CriteriaQuery<Q> criteriaQuery, Root<M> root);
+    private interface Executor<Q, M, R> {
+        R apply(CriteriaBuilder criteriaBuilder, CriteriaQuery<Q> criteriaQuery, Root<M> root);
     }
 
 }

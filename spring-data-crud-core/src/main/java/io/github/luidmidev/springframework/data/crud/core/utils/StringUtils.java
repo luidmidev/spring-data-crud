@@ -1,12 +1,10 @@
 package io.github.luidmidev.springframework.data.crud.core.utils;
 
 import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.Normalizer;
 
-@Slf4j
 @UtilityClass
 public final class StringUtils {
 
