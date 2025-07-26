@@ -1,12 +1,11 @@
 package io.github.luidmidev.springframework.data.crud.core;
 
+import cz.jirutka.rsql.parser.RSQLParser;
+import cz.jirutka.rsql.parser.ast.Node;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.QueryParameter;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.configuration.SpringDocConfiguration;
 import org.springdoc.core.customizers.OperationCustomizer;
@@ -16,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
@@ -37,26 +37,11 @@ import java.util.*;
 @ConditionalOnWebApplication
 public class SpringDataCrudAutoConfiguration {
 
-    /**
-     * A list of query parameters to ignore in CRUD operations, such as pagination and sorting parameters.
-     */
-    @Getter(AccessLevel.PUBLIC)
-    @Setter(AccessLevel.PRIVATE)
-    private static List<String> ignoreParams = List.of();
 
     private final SpringDataWebProperties springDataWebProperties;
 
     public SpringDataCrudAutoConfiguration(SpringDataWebProperties properties) {
         this.springDataWebProperties = properties;
-        var pageable = properties.getPageable();
-        var sort = properties.getSort();
-
-        setIgnoreParams(List.of(
-                pageable.getPageParameter(),
-                pageable.getSizeParameter(),
-                sort.getSortParameter(),
-                "search"
-        ));
     }
 
     @Bean
@@ -109,7 +94,66 @@ public class SpringDataCrudAutoConfiguration {
 
             return operation;
         };
+    }
 
+    @Bean
+    @ConditionalOnClass(SpringDocConfiguration.class)
+    public OperationCustomizer nodeParameterCustomizer() {
+        log.debug("Configuring RSQL query parameter for Spring Data CRUD operations");
+
+        return (operation, handlerMethod) -> {
+            var requestParamName = resolveRequestParamName(handlerMethod);
+            if (requestParamName.isEmpty()) {
+                return operation; // No query parameter found, return operation as is
+            }
+
+            var parameterName = requestParamName.get();
+
+            var parameters = operation.getParameters();
+            if (parameters == null) {
+                parameters = new ArrayList<>();
+                operation.setParameters(parameters);
+            }
+
+            parameters.removeIf(param -> parameterName.name.equals(param.getName()));
+            parameters.add(new QueryParameter()
+                    .name(parameterName.name)
+                    .schema(new StringSchema())
+                    .description("RSQL query string to filter results")
+                    .required(parameterName.required)
+            );
+
+            return operation;
+        };
+    }
+
+    @Bean
+    public Converter<String, Node> rsqlQueryConverter() {
+        final var parser = new RSQLParser();
+        return source -> {
+            if (source.isBlank()) {
+                return null; // Return null for empty or null input
+            }
+            try {
+                return parser.parse(source);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid RSQL query: " + source, e);
+            }
+        };
+    }
+
+    private static Optional<ParameterName> resolveRequestParamName(HandlerMethod handlerMethod) {
+        for (var parameter : handlerMethod.getMethodParameters()) {
+            var requestParam = parameter.getParameterAnnotation(RequestParam.class);
+            if (requestParam != null && !requestParam.value().isEmpty()) {
+                return Optional.of(new ParameterName(requestParam.value(), requestParam.required()));
+            }
+            var parameterName = parameter.getParameterName();
+            if (parameterName != null) {
+                return Optional.of(new ParameterName(parameterName, true));
+            }
+        }
+        return Optional.empty();
     }
 
     private static Optional<String> resolvePageableParameterName(HandlerMethod handlerMethod) {
@@ -126,8 +170,6 @@ public class SpringDataCrudAutoConfiguration {
         return Optional.empty();
     }
 
-    // Kiss principle: Keep It Simple, Stupid
-    public static void clearIgnoreParams(Map<String, ?> map) {
-        ignoreParams.forEach(map::remove);
+    private record ParameterName(String name, boolean required) {
     }
 }

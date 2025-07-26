@@ -9,7 +9,7 @@
     <parent>
         <groupId>io.github.luidmidev</groupId>
         <artifactId>spring-data-crud</artifactId>
-        <version>1.5.1</version>
+        <version>1.6.0</version>
     </parent>
 
     <properties>
@@ -19,6 +19,8 @@
     </properties>
 
     <dependencies>
+
+        <!-- Compile dependencies -->
 
         <dependency>
             <groupId>io.github.luidmidev</groupId>
@@ -37,8 +39,46 @@
         </dependency>
 
         <dependency>
+            <artifactId>omni-search-jpa</artifactId>
+            <groupId>io.github.luidmidev</groupId>
+            <version>1.0.2</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <scope>test</scope>
         </dependency>
 
