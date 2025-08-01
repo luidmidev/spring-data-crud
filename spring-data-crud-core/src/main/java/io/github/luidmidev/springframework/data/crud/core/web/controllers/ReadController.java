@@ -1,14 +1,13 @@
 package io.github.luidmidev.springframework.data.crud.core.web.controllers;
 
 
+import cz.jirutka.rsql.parser.ast.Node;
 import io.github.luidmidev.springframework.data.crud.core.providers.ServiceProvider;
-import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
 import io.github.luidmidev.springframework.data.crud.core.ReadService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,19 +34,18 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadSer
      * The pagination is handled using {@link Pageable} and search/filter parameters are passed in the request.
      * </p>
      *
-     * @param search Optional search string to filter entities based on a search term
-     * @param params Rest parameters that may include additional filters or options for the search
+     * @param search   Optional search string to filter entities based on a search term
+     * @param query    Optional query in format RSQL
      * @param pageable Pageable object to define pagination details (e.g., page number, page size)
      * @return A paginated list of entities matching the search and filter criteria
      */
     @GetMapping
     default ResponseEntity<Page<M>> page(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) MultiValueMap<String, String> params,
+            @RequestParam(required = false) Node query,
             Pageable pageable
     ) {
-        SpringDataCrudAutoConfiguration.clearIgnoreParams(params);
-        return ResponseEntity.ok(getService().page(search, pageable, params));
+        return ResponseEntity.ok(getService().page(search, pageable, query));
     }
 
     /**
@@ -78,8 +76,11 @@ public interface ReadController<M extends Persistable<ID>, ID, S extends ReadSer
      * @return The total number of entities in the repository
      */
     @GetMapping("/count")
-    default ResponseEntity<Long> count() {
-        return ResponseEntity.ok(getService().count());
+    default ResponseEntity<Long> count(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Node query
+    ) {
+        return ResponseEntity.ok(getService().count(search, query));
     }
 
     /**

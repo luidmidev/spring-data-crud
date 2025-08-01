@@ -1,7 +1,7 @@
 package io.github.luidmidev.springframework.data.crud.core.web.controllers;
 
 
-import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
+import cz.jirutka.rsql.parser.ast.Node;
 import io.github.luidmidev.springframework.data.crud.core.web.export.Exporter;
 import io.github.luidmidev.springframework.data.crud.core.providers.ServiceProvider;
 import io.github.luidmidev.springframework.data.crud.core.ReadService;
@@ -38,6 +38,7 @@ public interface ExportController<ID, S extends ReadService<?, ID>, O> extends S
 
     /**
      * Retrieves the export options based on the provided parameters.
+     *
      * @param params the parameters that may include fields, titles, and other options for the export
      * @return the export options configured for the exporter
      */
@@ -50,22 +51,21 @@ public interface ExportController<ID, S extends ReadService<?, ID>, O> extends S
      * The export format is determined by the exporter.
      * </p>
      *
-     * @param search an optional search string to filter the results
-     * @param params rest parameters of the request
+     * @param search   an optional search string to filter the results
+     * @param query    rest parameters of the request
      * @param pageable the pagination information
      * @return a {@link ResponseEntity} containing the export file as a {@link ByteArrayResource}
      */
     @GetMapping("/export")
     default ResponseEntity<ByteArrayResource> exportPage(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) Node query,
             @RequestParam(required = false) MultiValueMap<String, String> params,
             Pageable pageable
     ) {
 
-        SpringDataCrudAutoConfiguration.clearIgnoreParams(params);
-
         var options = getExportOptions(params);
-        var entities = getService().page(search, pageable, params);
+        var entities = getService().page(search, pageable, query);
         var exported = getExporter().export(entities, options);
 
         return ResponseEntityUtils.resource(

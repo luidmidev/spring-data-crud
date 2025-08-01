@@ -9,7 +9,7 @@
     <parent>
         <groupId>io.github.luidmidev</groupId>
         <artifactId>spring-data-crud</artifactId>
-        <version>1.6.0</version>
+        <version>1.6.1</version>
     </parent>
 
     <properties>
@@ -19,9 +19,7 @@
     </properties>
 
     <dependencies>
-
         <!-- Compile dependencies -->
-
         <dependency>
             <groupId>io.github.luidmidev</groupId>
             <artifactId>spring-data-crud-core</artifactId>
@@ -41,11 +39,10 @@
         <dependency>
             <artifactId>omni-search-jpa</artifactId>
             <groupId>io.github.luidmidev</groupId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
         </dependency>
 
         <!-- Test dependencies -->
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>

@@ -1,13 +1,13 @@
 package io.github.luidmidev.springframework.data.crud.core;
 
 
+import cz.jirutka.rsql.parser.ast.Node;
 import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;
 import io.github.luidmidev.springframework.data.crud.core.hooks.ReadHooks;
 import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Persistable;
-import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
@@ -20,11 +20,11 @@ public non-sealed interface ReadService<E extends Persistable<ID>, ID> extends C
         return ReadHooks.getDefault();
     }
 
-    default Page<E> page(String search, Pageable pageable, MultiValueMap<String, String> filters) {
+    default Page<E> page(String search, Pageable pageable, Node query) {
         Crud.preProccess(this, CrudOperation.PAGE);
 
         var normalized = StringUtils.normalize(search);
-        var page = resolvePage(normalized, pageable, filters);
+        var page = resolvePage(normalized, pageable, query);
         var hooks = getHooks();
 
         hooks.onPage(page);
@@ -52,10 +52,10 @@ public non-sealed interface ReadService<E extends Persistable<ID>, ID> extends C
         return list;
     }
 
-    default long count() {
+    default long count(String search, Node query) {
         Crud.preProccess(this, CrudOperation.COUNT);
 
-        var count = internalCount();
+        var count = resolveCount(search, query);
         var hooks = getHooks();
 
         hooks.onCount(count);
@@ -76,9 +76,7 @@ public non-sealed interface ReadService<E extends Persistable<ID>, ID> extends C
 
     Page<E> internalSearch(String search, Pageable pageable);
 
-    default Page<E> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> filters) {
-        return internalSearch(search, pageable);
-    }
+    Page<E> internalSearch(String search, Pageable pageable, Node query);
 
     E internalFind(ID id) throws NotFoundEntityException;
 
@@ -86,13 +84,32 @@ public non-sealed interface ReadService<E extends Persistable<ID>, ID> extends C
 
     long internalCount();
 
+    long internalCount(String search);
+
+    long internalCount(String search, Node query);
+
     boolean internalExists(ID id);
 
-    private Page<E> resolvePage(String search, Pageable pageable, MultiValueMap<String, String> filters) {
-        if (filters == null || filters.isEmpty()) {
-            return search == null ? internalPage(pageable) : internalSearch(search, pageable);
+    private Page<E> resolvePage(String search, Pageable pageable, Node query) {
+        if (query == null) {
+            if (search == null || search.isBlank()) {
+                return internalPage(pageable);
+            }
+            return internalSearch(search, pageable);
         } else {
-            return internalSearch(search, pageable, filters);
+            return internalSearch(search, pageable, query);
+        }
+    }
+
+    private long resolveCount(String search, Node query) {
+        if (query == null) {
+            if (search == null || search.isBlank()) {
+                return internalCount();
+            }
+            return internalCount(search);
+        } else {
+            return internalCount(search, query);
         }
     }
 }
+

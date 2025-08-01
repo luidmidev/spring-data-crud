@@ -1,27 +1,30 @@
 package io.github.luidmidev.springframework.data.crud.core.autoconfigurations;
 
-import cz.jirutka.rsql.parser.RSQLParser;
 import cz.jirutka.rsql.parser.ast.Node;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.QueryParameter;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.configuration.SpringDocConfiguration;
 import org.springdoc.core.customizers.OperationCustomizer;
+import org.springdoc.core.discoverer.SpringDocParameterNameDiscoverer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Autoconfiguration class for setting up Spring Data CRUD operations with custom authorization.
@@ -34,18 +37,14 @@ import java.util.*;
 @Slf4j
 @AutoConfiguration
 @EnableConfigurationProperties(SpringDataWebProperties.class)
+@ConditionalOnClass(SpringDocConfiguration.class)
+@RequiredArgsConstructor
 @ConditionalOnWebApplication
-public class SpringDataCrudAutoConfiguration {
-
+public class SpringDocDataCrudAutoConfiguration {
 
     private final SpringDataWebProperties springDataWebProperties;
 
-    public SpringDataCrudAutoConfiguration(SpringDataWebProperties properties) {
-        this.springDataWebProperties = properties;
-    }
-
     @Bean
-    @ConditionalOnClass(SpringDocConfiguration.class)
     public OperationCustomizer pageableParameterCustomizer() {
         log.debug("Configuring pageable parameters for Spring Data CRUD operations");
 
@@ -97,12 +96,12 @@ public class SpringDataCrudAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnClass(SpringDocConfiguration.class)
+    @SneakyThrows
     public OperationCustomizer nodeParameterCustomizer() {
         log.debug("Configuring RSQL query parameter for Spring Data CRUD operations");
 
         return (operation, handlerMethod) -> {
-            var requestParamName = resolveRequestParamName(handlerMethod);
+            var requestParamName = resolveNodeParameterName(handlerMethod);
             if (requestParamName.isEmpty()) {
                 return operation; // No query parameter found, return operation as is
             }
@@ -127,44 +126,34 @@ public class SpringDataCrudAutoConfiguration {
         };
     }
 
-    @Bean
-    public Converter<String, Node> rsqlQueryConverter() {
-        final var parser = new RSQLParser();
-        return source -> {
-            if (source.isBlank()) {
-                return null; // Return null for empty or null input
-            }
-            try {
-                return parser.parse(source);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Invalid RSQL query: " + source, e);
-            }
-        };
-    }
-
-    private static Optional<ParameterName> resolveRequestParamName(HandlerMethod handlerMethod) {
+    private static Optional<ParameterName> resolveNodeParameterName(HandlerMethod handlerMethod) {
         for (var parameter : handlerMethod.getMethodParameters()) {
-            var requestParam = parameter.getParameterAnnotation(RequestParam.class);
-            if (requestParam != null && !requestParam.value().isEmpty()) {
-                return Optional.of(new ParameterName(requestParam.value(), requestParam.required()));
+            parameter.initParameterNameDiscovery(new SpringDocParameterNameDiscoverer());
+            if (Node.class.isAssignableFrom(parameter.getParameterType())) {
+                var requestParam = parameter.getParameterAnnotation(RequestParam.class);
+                if (requestParam != null && !requestParam.value().isEmpty()) {
+                    return Optional.of(new ParameterName(requestParam.value(), requestParam.required()));
+                }
+                var parameterName = parameter.getParameterName();
+                if (parameterName != null) {
+                    return Optional.of(new ParameterName(parameterName, true));
+                }
             }
-            var parameterName = parameter.getParameterName();
-            if (parameterName != null) {
-                return Optional.of(new ParameterName(parameterName, true));
-            }
+
         }
         return Optional.empty();
     }
 
     private static Optional<String> resolvePageableParameterName(HandlerMethod handlerMethod) {
         for (var parameter : handlerMethod.getMethodParameters()) {
+            parameter.initParameterNameDiscovery(new SpringDocParameterNameDiscoverer());
             if (Pageable.class.isAssignableFrom(parameter.getParameterType())) {
                 var requestParam = parameter.getParameterAnnotation(RequestParam.class);
                 if (requestParam != null && !requestParam.value().isEmpty()) {
                     return Optional.of(requestParam.value());
                 }
                 var parameterName = parameter.getParameterName();
-                return Optional.of(Objects.requireNonNullElse(parameterName, "pageable"));
+                return Optional.of(Objects.requireNonNull(parameterName));
             }
         }
         return Optional.empty();
